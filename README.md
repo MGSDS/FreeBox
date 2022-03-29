@@ -1,3 +1,4 @@
+![logo_medium](Docs/Logo/logo_medium.png)
 # FreeBox
 Another DropBox analog
 
