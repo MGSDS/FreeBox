@@ -1,24 +1,38 @@
 ﻿using System.IO.Compression;
+using FreeBox.Server.Core.Extensions;
 using FreeBox.Server.Core.Interfaces;
+using File = FreeBox.Server.Core.Entities.File;
 
 namespace FreeBox.Server.Core.CompressionAlgorithms;
 
 public class ZipCompressor : ICompressionAlgorithm
 {
-    public Stream Compress(Stream data)
+    public File Compress(File data)
     {
-        var output = new MemoryStream();
-        using var stream = new DeflateStream(output, CompressionLevel.Optimal, leaveOpen: true);
-        data.Position = 0;
-        data.CopyTo(stream);
-        return output;
+        using (var compressedStream = new MemoryStream())
+        {
+            using (var compressor = new DeflateStream(compressedStream, CompressionMode.Compress, leaveOpen: true))
+            {
+                data.Content.Position = 0;
+                data.Content.CopyTo(compressor);
+                compressor.Close();
+                var file = new File(data.FileInfo, compressedStream);
+                return file;
+            }
+        }
     }
 
-    public Stream Decompress(Stream data)
+    public File Decompress(File data)
     {
-        var output = new MemoryStream();
-        using var stream = new DeflateStream(data, CompressionMode.Decompress, leaveOpen: true);
-        stream.CopyTo(output);
-        return output;
+        data.Content.Position = 0;
+        using (var deCompressedStream = new MemoryStream())
+        {
+            using (var compressor = new DeflateStream(data.Content, CompressionMode.Decompress))
+            {
+                compressor.CopyTo(deCompressedStream);
+                deCompressedStream.Position = 0;
+                return new File(data.FileInfo, deCompressedStream);
+            }
+        }
     }
 }
