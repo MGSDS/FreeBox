@@ -1,6 +1,5 @@
 ﻿using FreeBox.Server.DataAccess.DatabaseModels;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace FreeBox.Server.DataAccess;
 
@@ -15,4 +14,5 @@ public class BusinessContext : DbContext
     
     public DbSet<ClientModel> Clients { get; set; }
     public DbSet<FileModel> Files { get; set; }
+    public DbSet<Blob> Blobs { get; set; }
 }

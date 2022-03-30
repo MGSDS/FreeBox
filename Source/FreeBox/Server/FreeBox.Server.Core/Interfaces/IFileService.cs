@@ -1,13 +1,13 @@
 ﻿using FreeBox.Server.Core.Entities;
 using File = FreeBox.Server.Core.Entities.File;
-using FileInfo = System.IO.FileInfo;
+using FileInfo = FreeBox.Server.Core.Entities.FileInfo;
 
 namespace FreeBox.Server.Core.Interfaces;
 
 public interface IFileService
 {
-    FileStorage SaveFile(File file, User user);
-    File GetFile(FileStorage fileStorage);
-    List<FileStorage> GetUserFiles(User user);
-    void DeleteFile(FileStorage fileStorage);
+    FileInfo SaveFile(File file, User user);
+    File GetFile(FileInfo file);
+    List<FileInfo> GetUserFiles(User user);
+    void DeleteFile(FileInfo file);
 }

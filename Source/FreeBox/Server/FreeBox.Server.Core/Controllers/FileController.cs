@@ -1,8 +1,6 @@
 ﻿using FreeBox.Server.Core.Entities;
 using FreeBox.Server.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
-using Microsoft.Net.Http.Headers;
 using File = FreeBox.Server.Core.Entities.File;
 using FileInfo = FreeBox.Server.Core.Entities.FileInfo;
 
@@ -23,27 +21,28 @@ public class FileController : ControllerBase
 
     [HttpPost]
     [Route("Add")]
-    public ActionResult AddUserFile([FromQuery] Guid userId, IFormFile fileForm)
+    public ActionResult<FileInfo> AddUserFile([FromQuery] Guid userId, IFormFile fileForm)
     {
         //TODO: Get User From Auth
         using Stream content = fileForm.OpenReadStream();
-        var file = new File(new FileInfo(fileForm.FileName, content.Length, DateTime.Now), fileForm.OpenReadStream());
-        _fileService.SaveFile(file, new User(userId, String.Empty));
-        return Ok();
+        var file = new File(new FileInfo(Guid.Empty, fileForm.FileName, content.Length, DateTime.Now), fileForm.OpenReadStream());
+        FileInfo fileInfo = _fileService.SaveFile(file, new User(userId, String.Empty));
+        file.Dispose();
+        return fileInfo;
     }
 
     [HttpGet]
     [Route("/User/{id}")]
-    public List<FileStorage> GetUserFiles([FromRoute] Guid id)
+    public List<FileInfo> GetUserFiles([FromRoute] Guid id)
     {
         return _fileService.GetUserFiles(new User(id, String.Empty));
     }
     
     [HttpDelete]
-    [Route("Delete")]
-    public ActionResult DeleteFile([FromBody] FileStorage fileStorage)
+    [Route("Delete/{id}")]
+    public ActionResult DeleteFile([FromRoute] Guid id)
     {
-        _fileService.DeleteFile(fileStorage);
+        _fileService.DeleteFile(new FileInfo(id, String.Empty, 0, DateTime.Now));
         return Ok();
     }
     
@@ -51,7 +50,7 @@ public class FileController : ControllerBase
     [Route("Get/{id}")]
     public FileStreamResult GetFile([FromRoute] Guid id)
     {
-        File file = _fileService.GetFile(new FileStorage(null, null, id));
+        File file = _fileService.GetFile(new FileInfo(id, String.Empty, 0, DateTime.Now));
         file.Content.Position = 0;
         var result = new FileStreamResult(file.Content, "application/octet-stream");
         result.FileDownloadName = file.FileInfo.Name;

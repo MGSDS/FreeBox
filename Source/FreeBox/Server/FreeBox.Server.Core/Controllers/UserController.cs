@@ -10,12 +10,13 @@ public class UserController : ControllerBase
 {
     private ILogger<UserController> _logger;
     private IUserService _userService;
+    private IFileService _fileService;
 
-    public UserController(ILogger<UserController> logger, IUserService userService)
+    public UserController(ILogger<UserController> logger, IUserService userService, IFileService fileService)
     {
         _logger = logger;
         _userService = userService;
-        //TODO: log
+        _fileService = fileService;
     }
 
     [HttpPost]
@@ -39,6 +40,7 @@ public class UserController : ControllerBase
     public ActionResult DeleteUser([FromRoute] Guid id)
     {
         _userService.DeleteUser(id);
+        
         return Ok();
     }
 

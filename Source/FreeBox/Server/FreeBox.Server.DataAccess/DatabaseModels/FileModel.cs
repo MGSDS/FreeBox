@@ -2,23 +2,20 @@
 
 public class FileModel
 {
-    public FileModel(ClientModel clientModel, string name, long size, string storageName, DateTime saveDateTime)
+    public FileModel(string name, long size, DateTime saveDateTime, Blob blob)
     {
-        ClientModel = clientModel;
         Name = name;
         Size = size;
-        StorageName = storageName;
         SaveDateTime = saveDateTime;
         Id = Guid.Empty;
+        Blob = blob;
     }
     
     private FileModel() { }
     
     public Guid Id { get; private init; }
-    public ClientModel ClientModel { get; private init; }
     public string Name { get; private init; }
     public long Size { get; private init; }
-    public string StorageName { get; private init; }
-    
     public DateTime SaveDateTime { get; private init; }
+    public Blob Blob { get; private init; }
 }
