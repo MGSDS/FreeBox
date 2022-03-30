@@ -1,9 +1,7 @@
 ﻿using FreeBox.Server.Core.Entities;
-using FreeBox.Server.Core.Extensions;
 using FreeBox.Server.Core.Interfaces;
 using FreeBox.Server.DataAccess;
 using FreeBox.Server.DataAccess.DatabaseModels;
-using Microsoft.EntityFrameworkCore;
 
 namespace FreeBox.Server.Core.Services;
 
@@ -11,13 +9,11 @@ public class UserService : IUserService
 {
     private BusinessContext _businessContext;
     private ILogger<UserService> _logger;
-    private IFileService _fileService;
 
-    public UserService(BusinessContext businessContext, ILogger<UserService> logger, IFileService fileService)
+    public UserService(BusinessContext businessContext, ILogger<UserService> logger)
     {
         _businessContext = businessContext;
         _logger = logger;
-        _fileService = fileService;
     }
 
     public List<User> GetUsers()
@@ -57,13 +53,12 @@ public class UserService : IUserService
         if (!_businessContext.Clients.Any(x => x.Id == id))
             _logger.Log(LogLevel.Error, $"Can not delete user, no user with id: {id} found");
 
-        var record = _businessContext.Clients
-            .First(x => x.Id == id);
+        var records = _businessContext.Clients
+            .Where(x => x.Id == id)
+            .ToList();
+        if (records.Count > 0)
+            _businessContext.Clients.RemoveRange(records);
 
-        _fileService.GetUserFiles(record.ToUser()).ForEach(x => _fileService.DeleteFile(x));
-        _businessContext.Clients.Remove(record);
-
-        _businessContext.Clients.Remove(record);
         _businessContext.SaveChanges();
         _logger.Log(LogLevel.Information, $"User with id {id} deleted");
     }

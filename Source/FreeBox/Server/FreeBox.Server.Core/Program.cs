@@ -1,5 +1,6 @@
 using FreeBox.Server.Core.CompressionAlgorithms;
 using FreeBox.Server.Core.Interfaces;
+using FreeBox.Server.Core.Repositories;
 using FreeBox.Server.Core.Services;
 using FreeBox.Server.DataAccess;
 using Microsoft.EntityFrameworkCore;
@@ -31,9 +32,12 @@ try
     builder.Logging.ClearProviders();
     builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
     builder.Host.UseNLog();
-    builder.Services.AddScoped<ICompressionAlgorithm, ZipCompressor>();
-    builder.Services.AddScoped<IFileService, FileService>();
     builder.Services.AddScoped<IUserService, UserService>();
+    builder.Services.AddScoped<ICompressionAlgorithm, ZipCompressor>();
+    var repositoryPath = builder.Configuration.GetSection("RepositoryPath").Value;
+    builder.Services.AddScoped<IRepository, LocalFsRepository>(x =>
+        ActivatorUtilities.CreateInstance<LocalFsRepository>(x, repositoryPath));
+    builder.Services.AddScoped<IFileService, FileService>();
 
 
     var app = builder.Build();

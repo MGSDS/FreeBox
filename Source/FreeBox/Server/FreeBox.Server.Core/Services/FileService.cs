@@ -1,5 +1,4 @@
 ﻿using FreeBox.Server.Core.Entities;
-using FreeBox.Server.Core.Extensions;
 using FreeBox.Server.Core.Interfaces;
 using FreeBox.Server.DataAccess;
 using FreeBox.Server.DataAccess.DatabaseModels;
@@ -12,61 +11,62 @@ namespace FreeBox.Server.Core.Services;
 public class FileService : IFileService
 {
     private BusinessContext _context;
-    private ICompressionAlgorithm _compressionAlgorithm;
+    private IRepository _repository;
 
-    public FileService(BusinessContext context, ICompressionAlgorithm compressionAlgorithm)
+    public FileService(BusinessContext context, IRepository repository)
     {
         _context = context;
-        _compressionAlgorithm = compressionAlgorithm;
+        _repository = repository;
     }
 
-    public FileInfo SaveFile(File file, User user)
+    public FileStorage SaveFile(File file, User user)
     {
+        FileStorage storage = _repository.Save(file);
         ClientModel client = _context.Clients
                                  .Include(x => x.Files)
                                  .First(x => x.Id == user.Id)
                              ?? throw new InvalidOperationException("No user with such id");
-        File compressed = _compressionAlgorithm.Compress(file);
         var model = new FileModel(
-            file.FileInfo.Name,
-            file.FileInfo.Size,
-            file.FileInfo.SaveDate,
-            new Blob(compressed.BinaryContent)
-            );
+            client,
+            storage.File.Name,
+            storage.File.Size,
+            storage.Storage.Name,
+            DateTime.Now);
+        _context.Files.Add(model);
         client.Files.Add(model);
         _context.SaveChanges();
-        compressed.Dispose();
+        storage.Id = model.Id;
 
-        return model.ToFileInfo();
+        return storage;
     }
     
-    public File GetFile(FileInfo file)
+    public File GetFile(FileStorage fileStorage)
     {
-        var fileModel = _context.Files
-            .Include(x => x.Blob)
-            .First(x => x.Id == file.Id);
-        File decompressed = _compressionAlgorithm.Decompress(fileModel.ToFile());
-        return decompressed;
+        var fileModel = _context.Files.First(x => x.Id == fileStorage.Id);
+        return _repository.GetFile(
+            new FileStorage(
+            new FileInfo(fileModel.Name, fileModel.Size, fileModel.SaveDateTime),
+            new FileInfo(fileModel.StorageName, 0, fileModel.SaveDateTime),
+            fileModel.Id));
     }
 
-    public List<FileInfo> GetUserFiles(User user)
+    public List<FileStorage> GetUserFiles(User user)
     {
         ClientModel client = _context.Clients
                                  .Include(x => x.Files)
                                  .First(x => x.Id == user.Id)
                              ?? throw new InvalidOperationException("No user with such id");
         return client.Files
-            .Select(x => x.ToFileInfo())
+            .Select(x =>
+                new FileStorage(
+                    new Entities.FileInfo(x.Name, x.Size, x.SaveDateTime),
+                    null, x.Id))
             .ToList();
     }
     
-    public void DeleteFile(FileInfo file)
+    public void DeleteFile(FileStorage fileStorage)
     {
-        var entry = _context.Files
-            .Include(x => x.Blob)
-            .First(x => x.Id == file.Id);
-        _context.Files.Remove(entry);
-        _context.Blobs.Remove(entry.Blob);
-        _context.SaveChanges();
+        _repository.DeleteFile(fileStorage);
+        _context.Files.Remove(_context.Files.First(x => x.Id == fileStorage.Id));
     }
 }

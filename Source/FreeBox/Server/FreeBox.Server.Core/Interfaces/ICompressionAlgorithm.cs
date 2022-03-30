@@ -1,9 +1,9 @@
-﻿using File = FreeBox.Server.Core.Entities.File;
+﻿using System.IO.Compression;
 
 namespace FreeBox.Server.Core.Interfaces;
 
 public interface ICompressionAlgorithm
 {
-    File Compress(File data);
-    File Decompress(File data);
+    Stream Compress(Stream data);
+    Stream Decompress(Stream data);
 }
