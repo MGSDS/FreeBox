@@ -1,11 +1,12 @@
 ﻿using FreeBox.Server.Core.Interfaces;
 using FreeBox.Shared.Dtos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FreeBox.Server.Core.Controllers;
 
 [ApiController]
-[Route("/Api/[controller]")]
+[Route("/api/[controller]")]
 public class UserController : ControllerBase
 {
     private ILogger<UserController> _logger;
@@ -20,32 +21,27 @@ public class UserController : ControllerBase
     }
 
     [HttpPost]
-    [Route("{name}/Create")]
-    public ActionResult<UserDto> CreateUser([FromRoute] string name)
+    [Route("get/current")]
+    [Authorize]
+    public ActionResult<UserDto> GetUser()
     {
-        var user = _userService.AddUser(name);
-        return user.ToDto();
-    }
-
-    [HttpPost]
-    [Route("{id}")]
-    public ActionResult<UserDto> GetUser([FromRoute] Guid id)
-    {
-        var user = _userService.GetUser(id);
+        var user = _userService.GetUser(User.Identity.Name);
         return user.ToDto();
     }
     
     [HttpDelete]
-    [Route("{id}/Delete")]
-    public ActionResult DeleteUser([FromRoute] Guid id)
+    [Route("delete")]
+    [Authorize]
+    public ActionResult DeleteUser()
     {
-        _userService.DeleteUser(id);
+        _userService.DeleteUser(User.Identity.Name);
         
         return Ok();
     }
 
     [HttpPost]
-    [Route("GetAll")]
+    [Route("get/all")]
+    [Authorize(Roles = "admin")]
     public ActionResult<List<UserDto>> GetUsers()
     {
         var user = _userService.GetUsers();

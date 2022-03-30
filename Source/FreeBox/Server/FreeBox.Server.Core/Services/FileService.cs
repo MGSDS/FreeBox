@@ -6,28 +6,29 @@ using FreeBox.Server.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 using File = FreeBox.Server.Core.Models.File;
 using FileInfo = FreeBox.Server.Core.Models.FileInfo;
+using User = FreeBox.Server.DataAccess.Entities.User;
 
 namespace FreeBox.Server.Core.Services;
 
 public class FileService : IFileService
 {
-    private BusinessContext _context;
+    private FreeBoxContext _context;
     private ICompressionAlgorithm _compressionAlgorithm;
 
-    public FileService(BusinessContext context, ICompressionAlgorithm compressionAlgorithm)
+    public FileService(FreeBoxContext context, ICompressionAlgorithm compressionAlgorithm)
     {
         _context = context;
         _compressionAlgorithm = compressionAlgorithm;
     }
 
-    public FileInfo SaveFile(File file, User user)
+    public FileInfo SaveFile(File file, string login)
     {
-        ClientModel client = _context.Clients
+        User client = _context.Users
                                  .Include(x => x.Files)
-                                 .First(x => x.Id == user.Id)
+                                 .First(x => x.Login == login)
                              ?? throw new InvalidOperationException("No user with such id");
         File compressed = _compressionAlgorithm.Compress(file);
-        var model = new FileModel(
+        var model = new DataAccess.Entities.File(
             file.FileInfo.Name,
             file.FileInfo.Size,
             file.FileInfo.SaveDate,
@@ -49,11 +50,11 @@ public class FileService : IFileService
         return decompressed;
     }
 
-    public List<FileInfo> GetUserFiles(User user)
+    public List<FileInfo> GetUserFiles(string login)
     {
-        ClientModel client = _context.Clients
+        User client = _context.Users
                                  .Include(x => x.Files)
-                                 .First(x => x.Id == user.Id)
+                                 .First(x => x.Login == login)
                              ?? throw new InvalidOperationException("No user with such id");
         return client.Files
             .Select(x => x.ToFileInfo())

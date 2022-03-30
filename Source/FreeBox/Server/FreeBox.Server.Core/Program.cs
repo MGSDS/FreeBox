@@ -1,10 +1,13 @@
+using FreeBox.Server.Core;
 using FreeBox.Server.Core.CompressionAlgorithms;
 using FreeBox.Server.Core.Interfaces;
 using FreeBox.Server.Core.Services;
 using FreeBox.Server.DataAccess;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using NLog.Web;
 using NLog;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 Logger logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
 logger.Debug("init main");
@@ -22,7 +25,7 @@ try
     builder.Services.AddSwaggerGen();
     builder.Services.AddScoped<ICompressionAlgorithm, ZipCompressor>();
     var connectionString = builder.Configuration.GetSection("ConnectionString").Value;
-    builder.Services.AddDbContext<BusinessContext>(options =>
+    builder.Services.AddDbContext<FreeBoxContext>(options =>
     {
         options.UseSqlServer(connectionString ?? 
                              throw new ArgumentException("No ConnectionString specified"));
@@ -34,6 +37,22 @@ try
     builder.Services.AddScoped<ICompressionAlgorithm, ZipCompressor>();
     builder.Services.AddScoped<IFileService, FileService>();
     builder.Services.AddScoped<IUserService, UserService>();
+    
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            options.RequireHttpsMetadata = false;
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = AuthOptions.ISSUER,
+                ValidateAudience = true,
+                ValidAudience = AuthOptions.AUDIENCE,
+                ValidateLifetime = true,
+                IssuerSigningKey = AuthOptions.GetSymmetricSecurityKey(),
+                ValidateIssuerSigningKey = true,
+            };
+        });
 
 
     var app = builder.Build();

@@ -4,17 +4,19 @@ namespace FreeBox.Server.Core.Models;
 
 public class User
 {
-    public User(Guid id, string name)
+    public User(string login, string password, string role)
     {
-        Id = id;
-        Name = name;
+        Login = login;
+        Password = password;
+        Role = role;
     }
 
     public UserDto ToDto()
     {
-        return new UserDto(Id, Name);
+        return new UserDto(Login, Role);
     }
-
-    public Guid Id { get; }
-    public string Name { get; }
+    
+    public string Login { get; }
+    public string Password { get; }
+    public string Role { get; }
 }

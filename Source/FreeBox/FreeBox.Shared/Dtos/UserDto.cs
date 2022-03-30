@@ -1,3 +1,3 @@
 ﻿namespace FreeBox.Shared.Dtos;
 
-public record UserDto(Guid Id, string Name);
+public record UserDto(string Login, string Role);

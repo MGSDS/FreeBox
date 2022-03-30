@@ -6,8 +6,8 @@ namespace FreeBox.Server.Core.Interfaces;
 
 public interface IFileService
 {
-    FileInfo SaveFile(File file, User user);
+    FileInfo SaveFile(File file, string login);
     File GetFile(FileInfo file);
-    List<FileInfo> GetUserFiles(User user);
+    List<FileInfo> GetUserFiles(string login);
     void DeleteFile(FileInfo file);
 }

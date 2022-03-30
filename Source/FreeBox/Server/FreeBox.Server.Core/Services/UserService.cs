@@ -9,31 +9,31 @@ namespace FreeBox.Server.Core.Services;
 
 public class UserService : IUserService
 {
-    private BusinessContext _businessContext;
+    private FreeBoxContext _freeBoxContext;
     private ILogger<UserService> _logger;
     private IFileService _fileService;
 
-    public UserService(BusinessContext businessContext, ILogger<UserService> logger, IFileService fileService)
+    public UserService(FreeBoxContext freeBoxContext, ILogger<UserService> logger, IFileService fileService)
     {
-        _businessContext = businessContext;
+        _freeBoxContext = freeBoxContext;
         _logger = logger;
         _fileService = fileService;
     }
 
-    public List<User> GetUsers()
+    public List<Models.User> GetUsers()
     {
-        return _businessContext.Clients
-            .Select(x => new User(x.Id, x.Name))
+        return _freeBoxContext.Users
+            .Select(x => x.ToUser())
             .ToList();
     }
 
-    public User GetUser(Guid userId)
+    public Models.User GetUser(string login)
     {
         try
         {
-            return _businessContext.Clients
-                .Where(x => x.Id == userId)
-                .Select(x => new User(x.Id, x.Name))
+            return _freeBoxContext.Users
+                .Where(x => x.Login == login)
+                .Select(x => x.ToUser())
                 .First();
         }
         catch (Exception e)
@@ -43,28 +43,28 @@ public class UserService : IUserService
         }
     }
 
-    public User AddUser(string name)
+    public Models.User AddUser(string login, string password)
     {
-        var client = new ClientModel(name);
-        _businessContext.Clients.Add(client);
-        _businessContext.SaveChanges();
-        _logger.Log(LogLevel.Information, $"Client {client.Id} created");
-        return new User(client.Id, client.Name);
+        var client = new DataAccess.Entities.User(login, password, "user");
+        _freeBoxContext.Users.Add(client);
+        _freeBoxContext.SaveChanges();
+        _logger.Log(LogLevel.Information, $"Client {login} created");
+        return client.ToUser();
     }
 
-    public void DeleteUser(Guid id)
+    public void DeleteUser(string login)
     {
-        if (!_businessContext.Clients.Any(x => x.Id == id))
-            _logger.Log(LogLevel.Error, $"Can not delete user, no user with id: {id} found");
+        if (!_freeBoxContext.Users.Any(x => x.Login == login))
+            _logger.Log(LogLevel.Error, $"Can not delete user, no user with id: {login} found");
 
-        var record = _businessContext.Clients
-            .First(x => x.Id == id);
+        var record = _freeBoxContext.Users
+            .First(x => x.Login == login);
 
-        _fileService.GetUserFiles(record.ToUser()).ForEach(x => _fileService.DeleteFile(x));
-        _businessContext.Clients.Remove(record);
+        _fileService.GetUserFiles(login).ForEach(x => _fileService.DeleteFile(x));
+        _freeBoxContext.Users.Remove(record);
 
-        _businessContext.Clients.Remove(record);
-        _businessContext.SaveChanges();
-        _logger.Log(LogLevel.Information, $"User with id {id} deleted");
+        _freeBoxContext.Users.Remove(record);
+        _freeBoxContext.SaveChanges();
+        _logger.Log(LogLevel.Information, $"User {login} deleted");
     }
 }

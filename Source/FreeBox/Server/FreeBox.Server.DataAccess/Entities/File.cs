@@ -1,8 +1,8 @@
 ﻿namespace FreeBox.Server.DataAccess.Entities;
 
-public class FileModel
+public class File
 {
-    public FileModel(string name, long size, DateTime saveDateTime, Blob blob)
+    public File(string name, long size, DateTime saveDateTime, Blob blob)
     {
         Name = name;
         Size = size;
@@ -11,7 +11,7 @@ public class FileModel
         Blob = blob;
     }
     
-    private FileModel() { }
+    private File() { }
     
     public Guid Id { get; private init; }
     public string Name { get; private init; }
