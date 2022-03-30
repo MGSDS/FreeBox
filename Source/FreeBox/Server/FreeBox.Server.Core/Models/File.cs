@@ -1,6 +1,6 @@
-﻿using FreeBox.Server.DataAccess;
+﻿using FileInfo = FreeBox.Server.Core.Models.FileInfo;
 
-namespace FreeBox.Server.Core.Entities;
+namespace FreeBox.Server.Core.Models;
 
 public class File : IDisposable
 {

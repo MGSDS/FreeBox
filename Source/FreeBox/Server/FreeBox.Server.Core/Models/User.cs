@@ -1,6 +1,6 @@
 ﻿using FreeBox.Shared.Dtos;
 
-namespace FreeBox.Server.Core.Entities;
+namespace FreeBox.Server.Core.Models;
 
 public class User
 {

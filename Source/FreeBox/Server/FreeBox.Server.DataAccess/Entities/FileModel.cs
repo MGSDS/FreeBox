@@ -1,4 +1,4 @@
-﻿namespace FreeBox.Server.DataAccess.DatabaseModels;
+﻿namespace FreeBox.Server.DataAccess.Entities;
 
 public class FileModel
 {

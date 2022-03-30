@@ -1,4 +1,4 @@
-﻿using File = FreeBox.Server.Core.Entities.File;
+﻿using File = FreeBox.Server.Core.Models.File;
 
 namespace FreeBox.Server.Core.Interfaces;
 

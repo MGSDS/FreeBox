@@ -1,8 +1,8 @@
-﻿using FreeBox.Server.Core.Entities;
-using FreeBox.Server.Core.Extensions;
+﻿using FreeBox.Server.Core.Extensions;
 using FreeBox.Server.Core.Interfaces;
+using FreeBox.Server.Core.Models;
 using FreeBox.Server.DataAccess;
-using FreeBox.Server.DataAccess.DatabaseModels;
+using FreeBox.Server.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace FreeBox.Server.Core.Services;

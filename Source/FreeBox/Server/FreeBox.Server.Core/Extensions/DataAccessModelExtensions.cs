@@ -1,7 +1,7 @@
-﻿using FreeBox.Server.Core.Entities;
-using FreeBox.Server.DataAccess.DatabaseModels;
-using File = FreeBox.Server.Core.Entities.File;
-using FileInfo = FreeBox.Server.Core.Entities.FileInfo;
+﻿using FreeBox.Server.Core.Models;
+using FreeBox.Server.DataAccess.Entities;
+using File = FreeBox.Server.Core.Models.File;
+using FileInfo = FreeBox.Server.Core.Models.FileInfo;
 
 namespace FreeBox.Server.Core.Extensions;
 

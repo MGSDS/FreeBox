@@ -1,4 +1,4 @@
-﻿using FreeBox.Server.DataAccess.DatabaseModels;
+﻿using FreeBox.Server.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace FreeBox.Server.DataAccess;

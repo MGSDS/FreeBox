@@ -1,4 +1,4 @@
-﻿using FreeBox.Server.Core.Entities;
+﻿using FreeBox.Server.Core.Models;
 
 namespace FreeBox.Server.Core.Interfaces;
 

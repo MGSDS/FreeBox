@@ -1,7 +1,7 @@
 ﻿using System.IO.Compression;
 using FreeBox.Server.Core.Extensions;
 using FreeBox.Server.Core.Interfaces;
-using File = FreeBox.Server.Core.Entities.File;
+using File = FreeBox.Server.Core.Models.File;
 
 namespace FreeBox.Server.Core.CompressionAlgorithms;
 

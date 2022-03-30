@@ -1,4 +1,4 @@
-﻿namespace FreeBox.Server.Core.Entities;
+﻿namespace FreeBox.Server.Core.Models;
 
 public class FileStorage
 {
