@@ -15,8 +15,8 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\FreeBox.Shared\FreeBox.Shared.csproj" />
       <ProjectReference Include="..\FreeBox.Server.DataAccess\FreeBox.Server.DataAccess.csproj" />
-      <ProjectReference Include="..\FreeBox.Server.Shared\FreeBox.Server.Shared.csproj" />
     </ItemGroup>
 
     <ItemGroup>
