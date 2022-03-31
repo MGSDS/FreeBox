@@ -1,4 +1,4 @@
-﻿namespace FreeBox.Server.Core.Exceptions;
+﻿namespace FreeBox.Shared.Exceptions;
 
 public class FreeBoxException : Exception
 {

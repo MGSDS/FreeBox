@@ -1,7 +1,8 @@
-﻿using FreeBox.DataAccess;
-using FreeBox.Server.Core.Exceptions;
+﻿using System.Security.Authentication;
+using FreeBox.DataAccess;
 using FreeBox.Server.Core.Interfaces;
 using FreeBox.Server.Domain.Entities;
+using FreeBox.Shared.Exceptions;
 using Microsoft.Extensions.Logging;
 
 namespace FreeBox.Server.Core.Services;
@@ -28,8 +29,7 @@ public class UserService : IUserService
     public User Find(string login)
     {
         var res = _freeBoxContext.Users
-            .Where(x => x.Login == login)
-            .FirstOrDefault();
+            .FirstOrDefault(x => x.Login == login);
         if (res is null)
             throw new UserNotFoundException();
         return res;
@@ -38,16 +38,20 @@ public class UserService : IUserService
     public User Find(string login, string password)
     {
         var res = _freeBoxContext.Users
-            .FirstOrDefault(x => x.Login == login && x.Password == password);
+            .FirstOrDefault(x => x.Login == login);
         if (res is null)
             throw new UserNotFoundException();
+        
+        if (res.Password != password)
+            throw new InvalidCredentialException();
+        
         return res;
     }
 
     public User Add(string login, string password)
     {
         if (_freeBoxContext.Users.Any(x => x.Login == login))
-            throw new InvalidOperationException($"User with login {login} already exists");
+            throw new UserAlreadyExistsException();
         var client = new User(login, password, "user");
         _freeBoxContext.Users.Add(client);
         _freeBoxContext.SaveChanges();
@@ -64,8 +68,6 @@ public class UserService : IUserService
             .First(x => x.Login == login);
 
         _fileService.Find(login).ForEach(x => _fileService.Delete(login, x.Id));
-        _freeBoxContext.Users.Remove(record);
-
         _freeBoxContext.Users.Remove(record);
         _freeBoxContext.SaveChanges();
         _logger.Log(LogLevel.Information, $"User {login} deleted");

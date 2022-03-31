@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel;
-using FreeBox.Server.Core.Exceptions;
 using FreeBox.Server.Core.Interfaces;
 using FreeBox.DataAccess;
 using FreeBox.Server.Domain.Entities;
+using FreeBox.Shared.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 

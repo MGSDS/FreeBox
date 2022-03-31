@@ -1,10 +1,10 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using FreeBox.Server.Core.Exceptions;
 using FreeBox.Server.Core.Interfaces;
 using FreeBox.Server.Domain.Entities;
 using FreeBox.Server.Utils.Extensions;
 using FreeBox.Shared.Dtos;
+using FreeBox.Shared.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;

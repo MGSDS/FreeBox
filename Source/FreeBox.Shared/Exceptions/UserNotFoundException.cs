@@ -1,18 +1,5 @@
-﻿namespace FreeBox.Server.Core.Exceptions;
+﻿namespace FreeBox.Shared.Exceptions;
 
 public class UserNotFoundException : FreeBoxException
 {
-    public UserNotFoundException()
-    {
-    }
-
-    public UserNotFoundException(string message)
-        : base(message)
-    {
-    }
-
-    public UserNotFoundException(string message, Exception inner)
-        : base(message, inner)
-    {
-    }
 }
