@@ -1,4 +1,5 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Authentication;
 using System.Security.Claims;
 using FreeBox.Server.Core.Interfaces;
 using FreeBox.Server.Domain.Entities;
@@ -26,7 +27,15 @@ public class AccountController : Controller
     [Route("register")]
     public ActionResult<UserDto> CreateUser([FromForm] string login, [FromForm] string password)
     {
-        User user = _userService.Add(login, password);
+        User user;
+        try
+        {
+            user = _userService.Add(login, password);
+        }
+        catch (UserAlreadyExistsException)
+        {
+            return BadRequest("User with such login already exists");
+        }
         return user.ToDto();
     }
 
@@ -37,7 +46,7 @@ public class AccountController : Controller
         var identity = GetIdentity(username, password);
         if (identity == null)
         {
-            return BadRequest(new {errorText = "Invalid username or password."});
+            return BadRequest("Invalid username or password.");
         }
 
         var now = DateTime.UtcNow;
@@ -75,7 +84,6 @@ public class AccountController : Controller
     public ActionResult DeleteUser()
     {
         _userService.Delete(User.Identity.Name);
-        
         return Ok();
     }
     
@@ -86,15 +94,16 @@ public class AccountController : Controller
         {
             user = _userService.Find(login, password);
         }
-        catch (UserNotFoundException)
+        catch (Exception e)
         {
-            return null;
+            if (e is InvalidCredentialException or UserNotFoundException)
+                return null;
+            throw;
         }
 
         var claims = new List<Claim>
         {
             new Claim(ClaimsIdentity.DefaultNameClaimType, user.Login),
-            new Claim(ClaimsIdentity.DefaultRoleClaimType, user.Role),
         };
         ClaimsIdentity claimsIdentity =
             new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType,
