@@ -20,7 +20,7 @@ public class FileController : ControllerBase
     
     [HttpPost]
     [Route("upload")]
-    [Authorize]
+    [Authorize(AuthenticationSchemes ="Bearer", Roles = "user")]
     public ActionResult<ContainerInfoDto> AddUserFile(IFormFile fileForm)
     {
         ContainerInfo info;
@@ -41,7 +41,7 @@ public class FileController : ControllerBase
     
     [HttpGet]
     [Route("get/all")]
-    [Authorize]
+    [Authorize(AuthenticationSchemes ="Bearer", Roles = "user")]
     public List<ContainerInfoDto> GetUserFiles()
     {
         return _fileService
@@ -52,7 +52,7 @@ public class FileController : ControllerBase
     
     [HttpDelete]
     [Route("delete/{id}")]
-    [Authorize]
+    [Authorize(AuthenticationSchemes ="Bearer", Roles = "user")]
     public ActionResult DeleteFile([FromRoute] Guid id)
     {
         _fileService.Delete(User.Identity.Name, id);
@@ -61,7 +61,7 @@ public class FileController : ControllerBase
     
     [HttpGet]
     [Route("get/{id}")]
-    [Authorize]
+    [Authorize(AuthenticationSchemes ="Bearer", Roles = "user")]
     public ActionResult<FileStreamResult> GetFile([FromRoute] Guid id)
     {
         var file = _fileService.Find(User.Identity.Name, id);

@@ -62,7 +62,7 @@ public class AccountController : Controller
     
     [HttpPost]
     [Route("get/current")]
-    [Authorize]
+    [Authorize(AuthenticationSchemes ="Bearer", Roles = "user")]
     public ActionResult<UserDto> GetUser()
     {
         var user = _userService.Find(User.Identity.Name);
@@ -71,23 +71,14 @@ public class AccountController : Controller
     
     [HttpDelete]
     [Route("delete")]
-    [Authorize]
+    [Authorize(AuthenticationSchemes ="Bearer", Roles = "user")]
     public ActionResult DeleteUser()
     {
         _userService.Delete(User.Identity.Name);
         
         return Ok();
     }
-
-    [HttpPost]
-    [Route("get/all")]
-    [Authorize(Roles = "admin")]
-    public ActionResult<List<UserDto>> GetUsers()
-    {
-        var user = _userService.Get();
-        return user.Select(x => x.ToDto()).ToList();
-    }
-
+    
     private ClaimsIdentity? GetIdentity(string login, string password)
     {
         User user;
