@@ -55,7 +55,14 @@ public class FileController : ControllerBase
     [Authorize(AuthenticationSchemes ="Bearer", Roles = "user")]
     public ActionResult DeleteFile([FromRoute] Guid id)
     {
-        _fileService.Delete(User.Identity.Name, id);
+        try
+        {
+            _fileService.Delete(User.Identity.Name, id);
+        }
+        catch (FileNotFoundException)
+        {
+            return BadRequest("No such file found");
+        }
         return Ok();
     }
     
@@ -64,7 +71,16 @@ public class FileController : ControllerBase
     [Authorize(AuthenticationSchemes ="Bearer", Roles = "user")]
     public ActionResult<FileStreamResult> GetFile([FromRoute] Guid id)
     {
-        var file = _fileService.Find(User.Identity.Name, id);
+        FileContainer file;
+        try
+        {
+            file = _fileService.Find(User.Identity.Name, id);
+        }
+        catch (FileNotFoundException)
+        {
+            return BadRequest("No such file found");
+        }
+
         file.Data.Content.Position = 0;
         var result = new FileStreamResult(file.Data.Content, "application/octet-stream");
         result.FileDownloadName = file.Info.Name;
