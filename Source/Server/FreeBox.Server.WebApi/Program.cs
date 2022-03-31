@@ -8,6 +8,8 @@ using Microsoft.IdentityModel.Tokens;
 using NLog.Web;
 using NLog;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.OpenApi.Models;
 
 Logger logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
 logger.Debug("init main");
@@ -54,7 +56,43 @@ try
             };
         });
 
+    builder.Services.AddSwaggerGen(
+        c =>
+        {
+            c.CustomSchemaIds(type => type.FullName);
 
+            c.SwaggerDoc(
+                "v1",
+                new OpenApiInfo {Title = "FreeBox.Server", Version = "v1"});
+
+            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                In = ParameterLocation.Header,
+                Description = "JSON Web Token to access resources. Example: Bearer {token}",
+                Name = "Authorization",
+                Type = SecuritySchemeType.ApiKey,
+            });
+
+            c.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                            {Type = ReferenceType.SecurityScheme, Id = "Bearer"},
+                    },
+                    new[] {string.Empty}
+                },
+            });
+        });
+
+    builder.Services.AddAuthorization(options =>
+    {
+        options.DefaultPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
+            .RequireAuthenticatedUser()
+            .Build();
+    });
+    
     var app = builder.Build();
 
 
