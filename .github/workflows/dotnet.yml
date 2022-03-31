@@ -1,5 +1,7 @@
 name: .NET
 
+runs-on:    windows-latest
+
 on:
   push:
     branches: [ main ]
