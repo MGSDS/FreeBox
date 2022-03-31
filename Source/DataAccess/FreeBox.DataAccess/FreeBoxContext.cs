@@ -15,6 +15,8 @@ public class FreeBoxContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<FileContainer> Files { get; set; }
     public DbSet<ContainerData> Blobs { get; set; }
+    
+    public DbSet<ContainerInfo> FileInfos { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
         => modelBuilder

@@ -4,6 +4,7 @@ using FreeBox.Server.Core.Interfaces;
 using FreeBox.DataAccess;
 using FreeBox.Server.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace FreeBox.Server.Core.Services;
 
@@ -11,10 +12,12 @@ public class FileService : IFileService
 {
     private FreeBoxContext _context;
     private ICompressionAlgorithm _compressionAlgorithm;
+    private ILogger<FileService> _logger;
 
-    public FileService(FreeBoxContext context, ICompressionAlgorithm compressionAlgorithm)
+    public FileService(FreeBoxContext context, ILogger<FileService> logger, ICompressionAlgorithm compressionAlgorithm)
     {
         _context = context;
+        _logger = logger;
         _compressionAlgorithm = compressionAlgorithm;
     }
 
@@ -33,13 +36,14 @@ public class FileService : IFileService
         return model.Info;
     }
 
-    public FileContainer Find(string login, Guid fileId)
+    public FileContainer Find(string login, Guid fileInfoId)
     {
-        if (Find(login).All(x => x.Id != fileId))
+        if (Find(login).All(x => x.Id != fileInfoId))
             throw new FileNotFoundException();
         FileContainer fileContainer = _context.Files
             .Include(x => x.Data)
-            .FirstOrDefault(x => x.Id == fileId)!;
+            .Include(x => x.Info)
+             .First(x => x.Info.Id == fileInfoId);
         ContainerData decompressed = _compressionAlgorithm.Decompress(fileContainer.Data);
         return new FileContainer(fileContainer.Info.Duplicate(), decompressed);
     }
@@ -52,14 +56,16 @@ public class FileService : IFileService
             .ToList();
     }
 
-    public void Delete(string login, Guid fileId)
+    public void Delete(string login, Guid fileInfoId)
     {
-        if (Find(login).All(x => x.Id != fileId))
+        if (Find(login).All(x => x.Id != fileInfoId))
             throw new FileNotFoundException();
         FileContainer entry = _context.Files
             .Include(x => x.Data)
-            .FirstOrDefault(x => x.Id == fileId)!;
+            .Include(x => x.Info)
+            .First(x => x.Info.Id == fileInfoId);
         _context.Files.Remove(entry);
+        _context.FileInfos.Remove(entry.Info);
         _context.Blobs.Remove(entry.Data);
         _context.SaveChanges();
     }

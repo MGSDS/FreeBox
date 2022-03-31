@@ -16,9 +16,10 @@ public class ContainerData : IDisposable
     
     public MemoryStream Content { get; private init; }
     public Guid Id { get; private init; }
-
+    
     public void Dispose()
     {
         Content.Dispose();
     }
+    
 }
