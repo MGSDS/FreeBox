@@ -1,9 +1,8 @@
-﻿using FreeBox.Server.Core.Extensions;
+﻿using FreeBox.Server.Core.Exceptions;
+using FreeBox.Server.Core.Extensions;
 using FreeBox.Server.Core.Interfaces;
-using FreeBox.Server.Core.Models;
 using FreeBox.Server.DataAccess;
-using FreeBox.Server.DataAccess.Entities;
-using Microsoft.EntityFrameworkCore;
+using User = FreeBox.Server.Core.Models.User;
 
 namespace FreeBox.Server.Core.Services;
 
@@ -20,31 +19,39 @@ public class UserService : IUserService
         _fileService = fileService;
     }
 
-    public List<Models.User> GetUsers()
+    public List<User> Get()
     {
         return _freeBoxContext.Users
             .Select(x => x.ToUser())
             .ToList();
     }
 
-    public Models.User GetUser(string login)
+    public User Find(string login)
     {
-        try
-        {
-            return _freeBoxContext.Users
-                .Where(x => x.Login == login)
-                .Select(x => x.ToUser())
-                .First();
-        }
-        catch (Exception e)
-        {
-            _logger.Log(LogLevel.Error, $"User can not be returned {e.Message}");
-            throw;
-        }
+        var res = _freeBoxContext.Users
+            .Where(x => x.Login == login)
+            .Select(x => x.ToUser())
+            .FirstOrDefault();
+        if (res is null)
+            throw new UserNotFoundException();
+        return res;
     }
 
-    public Models.User AddUser(string login, string password)
+    public User Find(string login, string password)
     {
+        var res =  _freeBoxContext.Users
+            .Where(x => x.Login == login && x.Password == password)
+            .Select(x => x.ToUser())
+            .FirstOrDefault();
+        if (res is null)
+            throw new UserNotFoundException();
+        return res;
+    }
+
+    public User Add(string login, string password)
+    {
+        if (_freeBoxContext.Users.Any(x => x.Login == login))
+            throw new InvalidOperationException($"User with login {login} already exists");
         var client = new DataAccess.Entities.User(login, password, "user");
         _freeBoxContext.Users.Add(client);
         _freeBoxContext.SaveChanges();
@@ -52,15 +59,15 @@ public class UserService : IUserService
         return client.ToUser();
     }
 
-    public void DeleteUser(string login)
+    public void Delete(string login)
     {
         if (!_freeBoxContext.Users.Any(x => x.Login == login))
-            _logger.Log(LogLevel.Error, $"Can not delete user, no user with id: {login} found");
+            throw new UserNotFoundException();
 
         var record = _freeBoxContext.Users
             .First(x => x.Login == login);
 
-        _fileService.GetUserFiles(login).ForEach(x => _fileService.DeleteFile(x));
+        _fileService.Find(login).ForEach(x => _fileService.Delete(login, x.Id));
         _freeBoxContext.Users.Remove(record);
 
         _freeBoxContext.Users.Remove(record);

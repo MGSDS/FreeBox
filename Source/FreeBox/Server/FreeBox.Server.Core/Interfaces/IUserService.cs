@@ -4,8 +4,9 @@ namespace FreeBox.Server.Core.Interfaces;
 
 public interface IUserService
 {
-    List<User> GetUsers();
-    User GetUser(string login);
-    User AddUser(string login, string password);
-    void DeleteUser(string login);
+    List<User> Get();
+    User Find(string login);
+    User Find(string login, string password);
+    User Add(string login, string password);
+    void Delete(string login);
 }

@@ -1,9 +1,10 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using FreeBox.Server.Core.Extensions;
+using FreeBox.Server.Core.Exceptions;
 using FreeBox.Server.Core.Interfaces;
-using FreeBox.Server.DataAccess;
+using FreeBox.Server.Core.Models;
 using FreeBox.Shared.Dtos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
@@ -13,21 +14,18 @@ namespace FreeBox.Server.Core.Controllers;
 [Route("/api/[controller]")]
 public class AccountController : Controller
 {
-    private readonly FreeBoxContext _context;
     private readonly IUserService _userService;
 
-    public AccountController(FreeBoxContext context, IUserService userService)
+    public AccountController(IUserService userService)
     {
-        _context = context;
         _userService = userService;
-        //TODO: move to accountService
     }
     
     [HttpPost]
     [Route("register")]
     public ActionResult<UserDto> CreateUser([FromForm] string login, [FromForm] string password)
     {
-        var user = _userService.AddUser(login, password);
+        var user = _userService.Add(login, password);
         return user.ToDto();
     }
 
@@ -60,11 +58,47 @@ public class AccountController : Controller
 
         return Json(response);
     }
-
-    private ClaimsIdentity GetIdentity(string username, string password)
+    
+    [HttpPost]
+    [Route("get/current")]
+    [Authorize]
+    public ActionResult<UserDto> GetUser()
     {
-        var user = _context.Users.FirstOrDefault(x => x.Login == username && x.Password == password)!.ToUser();
-        if (user == null) return null;
+        var user = _userService.Find(User.Identity.Name);
+        return user.ToDto();
+    }
+    
+    [HttpDelete]
+    [Route("delete")]
+    [Authorize]
+    public ActionResult DeleteUser()
+    {
+        _userService.Delete(User.Identity.Name);
+        
+        return Ok();
+    }
+
+    [HttpPost]
+    [Route("get/all")]
+    [Authorize(Roles = "admin")]
+    public ActionResult<List<UserDto>> GetUsers()
+    {
+        var user = _userService.Get();
+        return user.Select(x => x.ToDto()).ToList();
+    }
+
+    private ClaimsIdentity? GetIdentity(string login, string password)
+    {
+        User user;
+        try
+        {
+            user = _userService.Find(login, password);
+        }
+        catch (UserNotFoundException)
+        {
+            return null;
+        }
+
         var claims = new List<Claim>
         {
             new Claim(ClaimsIdentity.DefaultNameClaimType, user.Login),

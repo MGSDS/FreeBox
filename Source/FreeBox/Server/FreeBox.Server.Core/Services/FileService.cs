@@ -1,11 +1,12 @@
-﻿using FreeBox.Server.Core.Extensions;
+﻿using FreeBox.Server.Core.Exceptions;
+using FreeBox.Server.Core.Extensions;
 using FreeBox.Server.Core.Interfaces;
-using FreeBox.Server.Core.Models;
 using FreeBox.Server.DataAccess;
 using FreeBox.Server.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 using File = FreeBox.Server.Core.Models.File;
 using FileInfo = FreeBox.Server.Core.Models.FileInfo;
+using FileNotFoundException = FreeBox.Server.Core.Exceptions.FileNotFoundException;
 using User = FreeBox.Server.DataAccess.Entities.User;
 
 namespace FreeBox.Server.Core.Services;
@@ -21,53 +22,59 @@ public class FileService : IFileService
         _compressionAlgorithm = compressionAlgorithm;
     }
 
-    public FileInfo SaveFile(File file, string login)
+    public FileInfo Save(File file, string login)
     {
-        User client = _context.Users
-                                 .Include(x => x.Files)
-                                 .First(x => x.Login == login)
-                             ?? throw new InvalidOperationException("No user with such id");
+        User client = FindUserWithFiles(login);
         File compressed = _compressionAlgorithm.Compress(file);
         var model = new DataAccess.Entities.File(
             file.FileInfo.Name,
             file.FileInfo.Size,
             file.FileInfo.SaveDate,
             new Blob(compressed.BinaryContent)
-            );
+        );
         client.Files.Add(model);
         _context.SaveChanges();
         compressed.Dispose();
 
         return model.ToFileInfo();
     }
-    
-    public File GetFile(FileInfo file)
+
+    public File Find(string login, Guid fileId)
     {
+        if (Find(login).All(x => x.Id != fileId))
+            throw new FileNotFoundException();
         var fileModel = _context.Files
             .Include(x => x.Blob)
-            .First(x => x.Id == file.Id);
+            .First(x => x.Id == fileId);
         File decompressed = _compressionAlgorithm.Decompress(fileModel.ToFile());
         return decompressed;
     }
 
-    public List<FileInfo> GetUserFiles(string login)
+    public List<FileInfo> Find(string login)
     {
-        User client = _context.Users
-                                 .Include(x => x.Files)
-                                 .First(x => x.Login == login)
-                             ?? throw new InvalidOperationException("No user with such id");
+        User client = FindUserWithFiles(login);
         return client.Files
             .Select(x => x.ToFileInfo())
             .ToList();
     }
-    
-    public void DeleteFile(FileInfo file)
+
+    public void Delete(string login, Guid fileId)
     {
         var entry = _context.Files
             .Include(x => x.Blob)
-            .First(x => x.Id == file.Id);
+            .First(x => x.Id == fileId);
         _context.Files.Remove(entry);
         _context.Blobs.Remove(entry.Blob);
         _context.SaveChanges();
+    }
+
+    private User FindUserWithFiles(string login)
+    {
+        User? client = _context.Users
+            .Include(x => x.Files)
+            .FirstOrDefault(x => x.Login == login);
+        if (client is null)
+            throw new UserNotFoundException();
+        return client;
     }
 }
