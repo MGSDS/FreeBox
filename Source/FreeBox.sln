@@ -8,7 +8,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeBox.Server.WebApi", "Se
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeBox.DataAccess", "DataAccess\FreeBox.DataAccess\FreeBox.DataAccess.csproj", "{BA3FDC31-DBAE-4113-9143-C00C98F04D3A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeBox.Client.Api", "Client\FreeBox.Client.Api\FreeBox.Client.Api.csproj", "{97ED37C7-34E0-4383-9922-03898D87D38D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeBox.Client.ApiClient", "Client\FreeBox.Client.ApiClient\FreeBox.Client.ApiClient.csproj", "{97ED37C7-34E0-4383-9922-03898D87D38D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeBox.Client.WpfClient", "Client\FreeBox.Client.WpfClient\FreeBox.Client.WpfClient.csproj", "{81311067-2AB6-47EA-ABA8-361CF8502D2E}"
 EndProject
