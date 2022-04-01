@@ -13,7 +13,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace FreeBox.Server.Core.Controllers;
 
 [ApiController]
-[Route("/api/[controller]")]
+[Route("/api/accounts")]
 public class AccountController : Controller
 {
     private readonly IUserService _userService;
@@ -25,12 +25,12 @@ public class AccountController : Controller
     
     [HttpPost]
     [Route("register")]
-    public ActionResult<UserDto> CreateUser([FromForm] string login, [FromForm] string password)
+    public ActionResult<UserDto> CreateUser(UserCredentialsDto credentials)
     {
         User user;
         try
         {
-            user = _userService.Add(login, password);
+            user = _userService.Add(credentials.Login, credentials.Password);
         }
         catch (UserAlreadyExistsException)
         {
@@ -40,10 +40,10 @@ public class AccountController : Controller
     }
 
     [HttpPost]
-    [Route(("login"))]
-    public IActionResult Token(string username, string password)
+    [Route(("auth"))]
+    public ActionResult<AuthInfoDto> Token(UserCredentialsDto credentials)
     {
-        var identity = GetIdentity(username, password);
+        var identity = GetIdentity(credentials.Login, credentials.Password);
         if (identity == null)
         {
             return BadRequest("Invalid username or password.");
@@ -60,24 +60,9 @@ public class AccountController : Controller
                 SecurityAlgorithms.HmacSha256));
         var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
 
-        var response = new
-        {
-            access_token = encodedJwt,
-            username = identity.Name
-        };
+        return new AuthInfoDto(credentials.Login, encodedJwt);
+    }
 
-        return Json(response);
-    }
-    
-    [HttpPost]
-    [Route("get/current")]
-    [Authorize(AuthenticationSchemes ="Bearer", Roles = "user")]
-    public ActionResult<UserDto> GetUser()
-    {
-        var user = _userService.Find(User.Identity.Name);
-        return user.ToDto();
-    }
-    
     [HttpDelete]
     [Route("delete")]
     [Authorize(AuthenticationSchemes ="Bearer", Roles = "user")]

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace FreeBox.Server.Core.Controllers;
 
 [ApiController]
-[Route("/api/[controller]")]
+[Route("/api/file")]
 public class FileController : ControllerBase
 {
     private IFileService _fileService;
