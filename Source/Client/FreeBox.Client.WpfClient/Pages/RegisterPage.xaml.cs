@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using FreeBox.Client.WpfClient.Operations;
@@ -12,7 +13,7 @@ public partial class RegisterPage : Page
         InitializeComponent();
     }
     
-    private void BtnReg_Click(object sender, RoutedEventArgs e)
+    private async void BtnReg_Click(object sender, RoutedEventArgs e)
     {
         var username = TbxUsername.Text;
         var password = PbxPassword.Password;
@@ -23,13 +24,17 @@ public partial class RegisterPage : Page
             || String.IsNullOrWhiteSpace(password))
         {
             MessageBox.Show("Login and Password should not be empty or whitespace");
+            return;
         }
 
+        DisableButtons();
+
         ApiOperations ops = new ApiOperations();
-        var user = ops.RegisterUser(username, password);
+        var user = await ops.RegisterUser(username, password);
         if (user == null)
         {
             MessageBox.Show("User already exists");
+            EnableButtons();
             return;
         }
         
@@ -40,5 +45,17 @@ public partial class RegisterPage : Page
     private void BtnBack_Click(object sender, RoutedEventArgs e)
     {
         NavigationService.GoBack();
+    }
+    
+    private void DisableButtons()
+    {
+        BtnBack.IsEnabled = false;
+        BtnReg.IsEnabled = false;
+    }
+
+    private void EnableButtons()
+    {
+        BtnBack.IsEnabled = true;
+        BtnReg.IsEnabled = true;
     }
 }

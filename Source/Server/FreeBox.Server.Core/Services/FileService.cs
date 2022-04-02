@@ -24,14 +24,13 @@ public class FileService : IFileService
     public ContainerInfo SaveFile(FileContainer container, string login)
     {
         User client = FindUserWithFiles(login);
-        var compressed = _compressionAlgorithm.Compress(container.Data);
-        var model = new FileContainer(
+        using var compressed = _compressionAlgorithm.Compress(container.Data);
+        using var model = new FileContainer(
             container.Info.Duplicate(),
             compressed
         );
         client.Files.Add(model);
         _context.SaveChanges();
-        compressed.Dispose();
 
         return model.Info;
     }
@@ -44,7 +43,7 @@ public class FileService : IFileService
             .FirstOrDefault(x => x.Info.Id == fileInfoId);
         if (fileContainer == null)
             throw new FileNotFoundException();
-        ContainerData decompressed = _compressionAlgorithm.Decompress(fileContainer.Data);
+        using ContainerData decompressed = _compressionAlgorithm.Decompress(fileContainer.Data);
         return new FileContainer(fileContainer.Info.Duplicate(), decompressed);
     }
 
@@ -71,6 +70,7 @@ public class FileService : IFileService
         _context.FileInfos.Remove(entry.Info);
         _context.Blobs.Remove(entry.Data);
         _context.SaveChanges();
+        entry.Dispose();
     }
 
     private User FindUserWithFiles(string login)

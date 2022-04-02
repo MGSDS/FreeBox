@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using FreeBox.Client.WpfClient.Entitities;
@@ -23,30 +24,35 @@ namespace FreeBox.Client.WpfClient.Pages
             UpdateFiles();
         }
 
-        private void UpdateFiles()
+        private async Task UpdateFiles()
         {
             var ops = new ApiOperations();
-            FilesList.ItemsSource = (ops.GetContainerInfos() ?? Array.Empty<ContainerInfo>()).Select(x => x.ToViewModel()).ToList();
+            FilesList.ItemsSource = (await ops.GetContainerInfos() ?? Array.Empty<ContainerInfo>())
+                .Select(x => x.ToViewModel()).ToList();
 
         }
 
-        private void BtnDelete_Click(object sender, RoutedEventArgs e)
+        private async void BtnDelete_Click(object sender, RoutedEventArgs e)
         {
             if (FilesList.SelectedItem is null)
             {
                 MessageBox.Show("Nothing selected");
                 return;
             }
+            
+            DisableButtons();
             var file = FilesList.SelectedItem as FileViewModel;
             var ops = new ApiOperations();
-            if (!ops.DeleteFile(file.Id))
+            if (!await ops.DeleteFile(file.Id))
             {
                 MessageBox.Show("Something went wrong");
             }
+            
             UpdateFiles();
+           EnableButtons();
         }
 
-        private void BtnDownload_Click(object sender, RoutedEventArgs e)
+        private async void BtnDownload_Click(object sender, RoutedEventArgs e)
         {
             if (FilesList.SelectedItem is null)
             {
@@ -54,13 +60,16 @@ namespace FreeBox.Client.WpfClient.Pages
                 return;
             }
 
+            DisableButtons();
+            
             var ops = new ApiOperations();
             var file = FilesList.SelectedItem as FileViewModel;
-            using FileContainer? fileContainer = ops.GetFile(file.Id);
+            using FileContainer? fileContainer = await ops.GetFile(file.Id);
             if (fileContainer is null)
             {
                 MessageBox.Show("Something went wrong");
                 UpdateFiles();
+                EnableButtons();
                 return;
             }
             var saveFileDialog = new SaveFileDialog
@@ -69,18 +78,35 @@ namespace FreeBox.Client.WpfClient.Pages
             };
             if (saveFileDialog.ShowDialog() == true)
                 File.WriteAllBytes(saveFileDialog.FileName, fileContainer.Stream.ToArray());
+            EnableButtons();
         }
 
         private void BtnBack_Click(object sender, RoutedEventArgs e)
         {
-            
             NavigationService.GoBack();
         }
 
         private void BtnUpdate_Click(object sender, RoutedEventArgs e)
         {
+            DisableButtons();
             UpdateFiles();
+            EnableButtons();
         }
 
+        private void DisableButtons()
+        {
+            BtnBack.IsEnabled = false;
+            BtnDelete.IsEnabled = false;
+            BtnDownload.IsEnabled = false;
+            BtnUpdate.IsEnabled = false;
+        }
+
+        private void EnableButtons()
+        {
+            BtnBack.IsEnabled = true;
+            BtnDelete.IsEnabled = true;
+            BtnDownload.IsEnabled = true;
+            BtnUpdate.IsEnabled = true;
+        }
     }
 }

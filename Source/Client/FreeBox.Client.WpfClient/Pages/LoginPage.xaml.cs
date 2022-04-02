@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using FreeBox.Client.WpfClient.Entitities;
@@ -13,16 +14,17 @@ public partial class LoginPage : Page
         InitializeComponent();
     }
     
-    private void BtnLogin_Click(object sender, RoutedEventArgs e)
+    private async void BtnLogin_Click(object sender, RoutedEventArgs e)
     {
         string username = TbxUsername.Text;
         string password = PbxPassword.Password;
-
+        DisableButtons();
         ApiOperations ops = new ApiOperations();
-        User? user = ops.AuthenticateUser(username, password);
+        User? user = await ops.AuthenticateUser(username, password);
         if (user == null)
         {
             MessageBox.Show("Invalid username or password");
+            EnableButtons();
             return;
         }
 
@@ -33,5 +35,17 @@ public partial class LoginPage : Page
     private void BtnRegister_Click(object sender, RoutedEventArgs e)
     {
         NavigationService.Navigate(new RegisterPage());
+    }
+    
+    private void DisableButtons()
+    {
+        BtnLogin.IsEnabled = false;
+        BtnRegister.IsEnabled = false;
+    }
+
+    private void EnableButtons()
+    {
+        BtnLogin.IsEnabled = true;
+        BtnRegister.IsEnabled = true;
     }
 }

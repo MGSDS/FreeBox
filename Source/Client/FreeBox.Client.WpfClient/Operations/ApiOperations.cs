@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Threading.Tasks;
 using FreeBox.Client.WpfClient.Entitities;
 using FreeBox.Client.WpfClient.Model;
 using FreeBox.Shared.Dtos;
@@ -24,18 +25,18 @@ namespace FreeBox.Client.WpfClient.Operations
                                     ?? throw new InvalidOperationException("No server url set in App.config"));
         }
 
-        public User? AuthenticateUser(string login, string password)
+        public async Task<User?> AuthenticateUser(string login, string password)
         {
             var endpoint = new Uri(_baseUrl, "api/accounts/auth");
             try
             {
 
                 var httpClient = new HttpClient();
-                HttpResponseMessage response = httpClient.PostAsJsonAsync(endpoint, new UserCredentialsDto(login, password)).Result;
+                HttpResponseMessage response = await httpClient.PostAsJsonAsync(endpoint, new UserCredentialsDto(login, password));
                 if (!response.IsSuccessStatusCode)
                     return null;
                 var authInfo =
-                    JsonConvert.DeserializeObject<AuthInfoDto>(response.Content.ReadAsStringAsync().Result);
+                    JsonConvert.DeserializeObject<AuthInfoDto>(await response.Content.ReadAsStringAsync());
                 return authInfo is null ? null : new User(authInfo.Login, password, authInfo.Token);
             }
             catch (Exception)
@@ -44,7 +45,7 @@ namespace FreeBox.Client.WpfClient.Operations
             }
         }
 
-        public bool UploadFile(string path)
+        public async Task<bool> UploadFile(string path)
         {
             AuthorizationTest();
             var endpoint = new Uri(_baseUrl, "api/files/upload");
@@ -67,7 +68,7 @@ namespace FreeBox.Client.WpfClient.Operations
                 using var fileContent = new ByteArrayContent(File.ReadAllBytes(path));
                 fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
                 form.Add(fileContent, "fileForm", Path.GetFileName(path));
-                HttpResponseMessage response = httpClient.PostAsync(endpoint, form).Result;
+                HttpResponseMessage response = await httpClient.PostAsync(endpoint, form);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception)
@@ -76,17 +77,17 @@ namespace FreeBox.Client.WpfClient.Operations
             }
         }
 
-        public User? RegisterUser(string login, string password)
+        public async Task<User?> RegisterUser(string login, string password)
         {
             var endpoint = new Uri(_baseUrl, "api/accounts/register");
             try
             {
                 var httpClient = new HttpClient();
-                HttpResponseMessage response = httpClient.PostAsJsonAsync(endpoint, new UserCredentialsDto(login, password)).Result;
+                HttpResponseMessage response = await httpClient.PostAsJsonAsync(endpoint, new UserCredentialsDto(login, password));
                 if (!response.IsSuccessStatusCode)
                     return null;
                 AuthInfoDto? authInfo =
-                    JsonConvert.DeserializeObject<AuthInfoDto>(response.Content.ReadAsStringAsync().Result);
+                    JsonConvert.DeserializeObject<AuthInfoDto>(await response.Content.ReadAsStringAsync());
                 return authInfo is null ? null : new User(authInfo.Login, password, authInfo.Token);
             }
             catch (Exception)
@@ -95,7 +96,7 @@ namespace FreeBox.Client.WpfClient.Operations
             }
         }
 
-        public bool DeleteUser()
+        public async Task<bool> DeleteUser()
         {
             AuthorizationTest();
             var endpoint = new Uri(_baseUrl, $"api/accounts/delete/{Globals.LoggedInUser.Login}");
@@ -105,7 +106,7 @@ namespace FreeBox.Client.WpfClient.Operations
                 var httpClient = new HttpClient();
                 httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", Globals.LoggedInUser.Token);
-                HttpResponseMessage response = httpClient.DeleteAsync(endpoint).Result;
+                HttpResponseMessage response = await httpClient.DeleteAsync(endpoint);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception)
@@ -114,7 +115,7 @@ namespace FreeBox.Client.WpfClient.Operations
             }
         }
 
-        public bool DeleteFile(Guid fileId)
+        public async Task<bool> DeleteFile(Guid fileId)
         {
             AuthorizationTest();
             var endpoint = new Uri(_baseUrl, $"api/files/delete/{fileId}");
@@ -124,7 +125,7 @@ namespace FreeBox.Client.WpfClient.Operations
                 var httpClient = new HttpClient();
                 httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", Globals.LoggedInUser.Token);
-                HttpResponseMessage response = httpClient.DeleteAsync(endpoint).Result;
+                HttpResponseMessage response = await httpClient.DeleteAsync(endpoint);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception)
@@ -133,7 +134,7 @@ namespace FreeBox.Client.WpfClient.Operations
             }
         }
 
-        public IEnumerable<ContainerInfo>? GetContainerInfos()
+        public async Task<IEnumerable<ContainerInfo>?> GetContainerInfos()
         {
             AuthorizationTest();
             var endpoint = new Uri(_baseUrl, $"api/files/user/{Globals.LoggedInUser.Login}/get/all");
@@ -143,11 +144,11 @@ namespace FreeBox.Client.WpfClient.Operations
                 var httpClient = new HttpClient();
                 httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", Globals.LoggedInUser.Token);
-                HttpResponseMessage response = httpClient.GetAsync(endpoint).Result;
+                HttpResponseMessage response = await httpClient.GetAsync(endpoint);
                 if (!response.IsSuccessStatusCode)
                     return null;
-                List<ContainerInfoDto>? dtos = JsonConvert.DeserializeObject<List<ContainerInfoDto>>(response.Content.ReadAsStringAsync()
-                    .Result);
+                List<ContainerInfoDto>? dtos =
+                    JsonConvert.DeserializeObject<List<ContainerInfoDto>>(await response.Content.ReadAsStringAsync());
                 return dtos?.Select(x => new ContainerInfo(x.Id, x.Name, x.Size, x.SaveDate));
             }
             catch (Exception)
@@ -156,7 +157,7 @@ namespace FreeBox.Client.WpfClient.Operations
             }
         }
 
-        public FileContainer? GetFile(Guid fileId)
+        public async Task<FileContainer?> GetFile(Guid fileId)
         {
             AuthorizationTest();
             var endpoint = new Uri(_baseUrl, $"api/files/get/{fileId}");
@@ -166,7 +167,7 @@ namespace FreeBox.Client.WpfClient.Operations
                 var httpClient = new HttpClient();
                 httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", Globals.LoggedInUser.Token);
-                HttpResponseMessage response = httpClient.GetAsync(endpoint).Result;
+                HttpResponseMessage response = await httpClient.GetAsync(endpoint);
                 if (!response.IsSuccessStatusCode)
                     return null;
                 string fileName = response.Content.Headers.ContentDisposition.FileName;
@@ -178,15 +179,15 @@ namespace FreeBox.Client.WpfClient.Operations
             }
         }
 
-        private void ActualizeToken()
+        private async Task ActualizeToken()
         {
             var endpoint = new Uri(_baseUrl, "api/accounts/auth");
 
             var httpClient = new HttpClient();
-            HttpResponseMessage response = httpClient.PostAsJsonAsync(endpoint, new UserCredentialsDto(Globals.LoggedInUser.Login,
-                Globals.LoggedInUser.Password)).Result;
+            HttpResponseMessage response = await httpClient.PostAsJsonAsync(endpoint,
+                new UserCredentialsDto(Globals.LoggedInUser.Login, Globals.LoggedInUser.Password));
             if (!response.IsSuccessStatusCode)
-                throw new WebException(response.StatusCode.ToString());
+                throw new WebException();
             var authInfo =
                 JsonConvert.DeserializeObject<AuthInfoDto>(response.Content.ReadAsStringAsync().Result);
             Globals.LoggedInUser.Token = authInfo.Token;

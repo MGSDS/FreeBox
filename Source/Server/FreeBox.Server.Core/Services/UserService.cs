@@ -1,5 +1,4 @@
-﻿using System.Security.Authentication;
-using FreeBox.DataAccess;
+﻿using FreeBox.DataAccess;
 using FreeBox.Server.Core.Interfaces;
 using FreeBox.Server.Domain.Entities;
 using FreeBox.Shared.Exceptions;
@@ -32,19 +31,6 @@ public class UserService : IUserService
             .FirstOrDefault(x => x.Login == login);
         if (res is null)
             throw new UserNotFoundException();
-        return res;
-    }
-
-    public User FindUser(string login, string password)
-    {
-        var res = _freeBoxContext.Users
-            .FirstOrDefault(x => x.Login == login);
-        if (res is null)
-            throw new UserNotFoundException();
-        
-        if (res.Password != password)
-            throw new InvalidCredentialException();
-        
         return res;
     }
 
