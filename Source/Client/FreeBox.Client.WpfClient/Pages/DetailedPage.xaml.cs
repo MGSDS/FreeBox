@@ -1,8 +1,10 @@
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using FreeBox.Client.WpfClient.Entitities;
 using FreeBox.Client.WpfClient.Model;
 using FreeBox.Client.WpfClient.Operations;
+using Microsoft.Win32;
 
 namespace FreeBox.Client.WpfClient.Pages;
 
@@ -57,5 +59,15 @@ public partial class DetailedPage : Page
     private void BtnFiles_Click(object sender, RoutedEventArgs e)
     {
         throw new System.NotImplementedException();
+    }
+
+    private void BtnUpload_Click(object sender, RoutedEventArgs e)
+    {
+        var ops = new ApiOperations();
+        OpenFileDialog openFileDialog = new OpenFileDialog();
+        if (openFileDialog.ShowDialog() != true) return;
+        MessageBox.Show(ops.UploadFile(openFileDialog.FileName)
+            ? "File successfully uploaded"
+            : "Something went wrong, try again later");
     }
 }

@@ -28,7 +28,7 @@ public class FileController : ControllerBase
         using (Stream content = fileForm.OpenReadStream())
         {
             data = new ContainerData(content);
-            info = new ContainerInfo(fileForm.Name, fileForm.Length, DateTime.Now);
+            info = new ContainerInfo(fileForm.FileName, fileForm.Length, DateTime.Now);
         }
 
         var file = new FileContainer(info, data);
