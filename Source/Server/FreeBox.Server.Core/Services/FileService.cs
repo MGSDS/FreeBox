@@ -21,7 +21,7 @@ public class FileService : IFileService
         _compressionAlgorithm = compressionAlgorithm;
     }
 
-    public ContainerInfo Save(FileContainer container, string login)
+    public ContainerInfo SaveFile(FileContainer container, string login)
     {
         User client = FindUserWithFiles(login);
         var compressed = _compressionAlgorithm.Compress(container.Data);
@@ -36,20 +36,19 @@ public class FileService : IFileService
         return model.Info;
     }
 
-    public FileContainer Find(string login, Guid fileInfoId)
+    public FileContainer GetFile(Guid fileInfoId)
     {
-        if (Find(login).All(x => x.Id != fileInfoId))
-            throw new FileNotFoundException();
-        FileContainer fileContainer = _context.Files
+        FileContainer? fileContainer = _context.Files
             .Include(x => x.Data)
             .Include(x => x.Info)
-            
-            .First(x => x.Info.Id == fileInfoId);
+            .FirstOrDefault(x => x.Info.Id == fileInfoId);
+        if (fileContainer == null)
+            throw new FileNotFoundException();
         ContainerData decompressed = _compressionAlgorithm.Decompress(fileContainer.Data);
         return new FileContainer(fileContainer.Info.Duplicate(), decompressed);
     }
 
-    public List<ContainerInfo> Find(string login)
+    public List<ContainerInfo> FindUserFiles(string login)
     {
         User client = FindUserWithFiles(login);
         return client.Files
@@ -57,14 +56,17 @@ public class FileService : IFileService
             .ToList();
     }
 
-    public void Delete(string login, Guid fileInfoId)
+    public void DeleteFile(Guid fileInfoId)
     {
-        if (Find(login).All(x => x.Id != fileInfoId))
-            throw new FileNotFoundException();
-        FileContainer entry = _context.Files
+        FileContainer? entry = _context.Files
             .Include(x => x.Data)
             .Include(x => x.Info)
-            .First(x => x.Info.Id == fileInfoId);
+            .FirstOrDefault(x => x.Info.Id == fileInfoId);
+        if (entry == null)
+        {
+            throw new FileNotFoundException();
+        }
+        
         _context.Files.Remove(entry);
         _context.FileInfos.Remove(entry.Info);
         _context.Blobs.Remove(entry.Data);

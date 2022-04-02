@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -19,7 +20,8 @@ namespace FreeBox.Client.WpfClient.Operations
 
         public ApiOperations()
         {
-            this._baseUrl = new Uri("https://localhost:7233/");
+           _baseUrl = new Uri(ConfigurationManager.AppSettings["Url"]
+                                    ?? throw new InvalidOperationException("No server url set in App.config"));
         }
 
         public User? AuthenticateUser(string login, string password)
@@ -45,7 +47,7 @@ namespace FreeBox.Client.WpfClient.Operations
         public bool UploadFile(string path)
         {
             AuthorizationTest();
-            var endpoint = new Uri(_baseUrl, "api/file/upload");
+            var endpoint = new Uri(_baseUrl, "api/files/upload");
             if (string.IsNullOrWhiteSpace(path))
             {
                 throw new ArgumentNullException(nameof(path));
@@ -96,7 +98,7 @@ namespace FreeBox.Client.WpfClient.Operations
         public bool DeleteUser()
         {
             AuthorizationTest();
-            var endpoint = new Uri(_baseUrl, "api/accounts/delete");
+            var endpoint = new Uri(_baseUrl, $"api/accounts/delete/{Globals.LoggedInUser.Login}");
             try
             {
                 ActualizeToken();
@@ -112,10 +114,10 @@ namespace FreeBox.Client.WpfClient.Operations
             }
         }
 
-        public bool DeleteFile(Guid id)
+        public bool DeleteFile(Guid fileId)
         {
             AuthorizationTest();
-            var endpoint = new Uri(_baseUrl, $"api/file/delete/{id}");
+            var endpoint = new Uri(_baseUrl, $"api/files/delete/{fileId}");
             try
             {
                 ActualizeToken();
@@ -134,7 +136,7 @@ namespace FreeBox.Client.WpfClient.Operations
         public IEnumerable<ContainerInfo>? GetContainerInfos()
         {
             AuthorizationTest();
-            var endpoint = new Uri(_baseUrl, "api/file/get/all");
+            var endpoint = new Uri(_baseUrl, $"api/files/user/{Globals.LoggedInUser.Login}/get/all");
             try
             {
                 ActualizeToken();
@@ -157,7 +159,7 @@ namespace FreeBox.Client.WpfClient.Operations
         public FileContainer? GetFile(Guid fileId)
         {
             AuthorizationTest();
-            var endpoint = new Uri(_baseUrl, $"api/file/get/{fileId}");
+            var endpoint = new Uri(_baseUrl, $"api/files/get/{fileId}");
             try
             {
                 ActualizeToken();

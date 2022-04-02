@@ -1,3 +1,4 @@
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using FreeBox.Client.WpfClient.Operations;
@@ -15,6 +16,14 @@ public partial class RegisterPage : Page
     {
         var username = TbxUsername.Text;
         var password = PbxPassword.Password;
+
+        if (String.IsNullOrEmpty(username) 
+            || String.IsNullOrWhiteSpace(username)
+            || String.IsNullOrEmpty(password) 
+            || String.IsNullOrWhiteSpace(password))
+        {
+            MessageBox.Show("Login and Password should not be empty or whitespace");
+        }
 
         ApiOperations ops = new ApiOperations();
         var user = ops.RegisterUser(username, password);

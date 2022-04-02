@@ -27,10 +27,39 @@ public class AccountController : Controller
     [Route("register")]
     public ActionResult<UserDto> CreateUser(UserCredentialsDto credentials)
     {
+        if (String.IsNullOrEmpty(credentials.Login)
+            || String.IsNullOrEmpty(credentials.Password)
+            || String.IsNullOrWhiteSpace(credentials.Password)
+            || String.IsNullOrWhiteSpace(credentials.Login))
+            return BadRequest("login and password can not be empty");
+
         User user;
         try
         {
-            user = _userService.Add(credentials.Login, credentials.Password);
+            user = _userService.AddUser(credentials.Login, credentials.Password, "user");
+        }
+        catch (UserAlreadyExistsException)
+        {
+            return BadRequest("User with such login already exists");
+        }
+        return user.ToDto();
+    }
+
+    [HttpPost]
+    [Route("admin/register")]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = "admin")]
+    public ActionResult<UserDto> CreateAdminUser(UserCredentialsDto credentials)
+    {
+        if (String.IsNullOrEmpty(credentials.Login)
+            || String.IsNullOrEmpty(credentials.Password) 
+            || String.IsNullOrWhiteSpace(credentials.Password) 
+            || String.IsNullOrWhiteSpace(credentials.Login))
+            return BadRequest("login and password can not be empty");
+
+        User user;
+        try
+        {
+            user = _userService.AddUser(credentials.Login, credentials.Password, "admin");
         }
         catch (UserAlreadyExistsException)
         {
@@ -43,11 +72,15 @@ public class AccountController : Controller
     [Route(("auth"))]
     public ActionResult<AuthInfoDto> Token(UserCredentialsDto credentials)
     {
+        if (String.IsNullOrEmpty(credentials.Login)
+            || String.IsNullOrEmpty(credentials.Password)
+            || String.IsNullOrWhiteSpace(credentials.Password)
+            || String.IsNullOrWhiteSpace(credentials.Login))
+            return BadRequest("login and password can not be empty");
+
         var identity = GetIdentity(credentials.Login, credentials.Password);
         if (identity == null)
-        {
             return BadRequest("Invalid username or password.");
-        }
 
         var now = DateTime.UtcNow;
         var jwt = new JwtSecurityToken(
@@ -64,11 +97,17 @@ public class AccountController : Controller
     }
 
     [HttpDelete]
-    [Route("delete")]
-    [Authorize(AuthenticationSchemes ="Bearer", Roles = "user")]
-    public ActionResult DeleteUser()
+    [Route("delete/{login}")]
+    [Authorize(AuthenticationSchemes ="Bearer", Roles = "user,admin")]
+    public ActionResult DeleteUser(string login)
     {
-        _userService.Delete(User.Identity.Name);
+        if (String.IsNullOrEmpty(login) || String.IsNullOrWhiteSpace(login))
+            return BadRequest("login can not be empty");
+
+        if (!User.IsInRole("admin") && login != User.Identity.Name)
+            return Forbid();
+
+        _userService.DeleteUser(User.Identity.Name);
         return Ok();
     }
     
@@ -77,7 +116,9 @@ public class AccountController : Controller
         User user;
         try
         {
-            user = _userService.Find(login, password);
+            user = _userService.FindUser(login);
+            if (user.Password != password)
+                return null;
         }
         catch (Exception e)
         {

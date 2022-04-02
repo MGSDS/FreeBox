@@ -20,13 +20,13 @@ public class UserService : IUserService
         _fileService = fileService;
     }
 
-    public List<User> Get()
+    public List<User> GetUsers()
     {
         return _freeBoxContext.Users
             .ToList();
     }
 
-    public User Find(string login)
+    public User FindUser(string login)
     {
         var res = _freeBoxContext.Users
             .FirstOrDefault(x => x.Login == login);
@@ -35,7 +35,7 @@ public class UserService : IUserService
         return res;
     }
 
-    public User Find(string login, string password)
+    public User FindUser(string login, string password)
     {
         var res = _freeBoxContext.Users
             .FirstOrDefault(x => x.Login == login);
@@ -48,18 +48,18 @@ public class UserService : IUserService
         return res;
     }
 
-    public User Add(string login, string password)
+    public User AddUser(string login, string password, string role)
     {
         if (_freeBoxContext.Users.Any(x => x.Login == login))
             throw new UserAlreadyExistsException();
-        var client = new User(login, password, "user");
+        var client = new User(login, password, role);
         _freeBoxContext.Users.Add(client);
         _freeBoxContext.SaveChanges();
         _logger.Log(LogLevel.Information, $"Client {login} created");
         return client;
     }
 
-    public void Delete(string login)
+    public void DeleteUser(string login)
     {
         if (!_freeBoxContext.Users.Any(x => x.Login == login))
             throw new UserNotFoundException();
@@ -67,7 +67,7 @@ public class UserService : IUserService
         var record = _freeBoxContext.Users
             .First(x => x.Login == login);
 
-        _fileService.Find(login).ForEach(x => _fileService.Delete(login, x.Id));
+        _fileService.FindUserFiles(login).ForEach(x => _fileService.DeleteFile(x.Id));
         _freeBoxContext.Users.Remove(record);
         _freeBoxContext.SaveChanges();
         _logger.Log(LogLevel.Information, $"User {login} deleted");
