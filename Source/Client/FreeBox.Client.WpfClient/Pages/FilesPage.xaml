@@ -37,7 +37,7 @@
                     <Setter Property="Margin" Value="4, 4, 4,4"/>
                 </Style>
             </Grid.Resources>
-            <Button Grid.Column="6"  x:Name="BtnDelete" Content="DeleteUser File" Click="BtnDelete_Click"/>
+            <Button Grid.Column="6"  x:Name="BtnDelete" Content="Delete File" Click="BtnDelete_Click"/>
             <Button Grid.Column="5" x:Name="BtnDownload" Content="Download File" Click="BtnDownload_Click"/>
             <Button Grid.Column="0"  x:Name="BtnBack" Content="Back" Click="BtnBack_Click"/>
             <Button Grid.Column="3"  x:Name="BtnUpdate" Content="Update" Click="BtnUpdate_Click"/>
