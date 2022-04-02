@@ -43,7 +43,8 @@ public class FileService : IFileService
         FileContainer fileContainer = _context.Files
             .Include(x => x.Data)
             .Include(x => x.Info)
-             .First(x => x.Info.Id == fileInfoId);
+            
+            .First(x => x.Info.Id == fileInfoId);
         ContainerData decompressed = _compressionAlgorithm.Decompress(fileContainer.Data);
         return new FileContainer(fileContainer.Info.Duplicate(), decompressed);
     }
@@ -74,6 +75,7 @@ public class FileService : IFileService
     {
         User? client = _context.Users
             .Include(x => x.Files)
+            .ThenInclude(x => x.Info)
             .FirstOrDefault(x => x.Login == login);
         if (client is null)
             throw new UserNotFoundException();

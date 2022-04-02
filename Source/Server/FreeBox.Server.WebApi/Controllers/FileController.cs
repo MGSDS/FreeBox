@@ -69,7 +69,7 @@ public class FileController : ControllerBase
     [HttpGet]
     [Route("get/{id}")]
     [Authorize(AuthenticationSchemes ="Bearer", Roles = "user")]
-    public ActionResult<FileStreamResult> GetFile([FromRoute] Guid id)
+    public IActionResult GetFile([FromRoute] Guid id)
     {
         FileContainer file;
         try
@@ -82,8 +82,10 @@ public class FileController : ControllerBase
         }
 
         file.Data.Content.Position = 0;
-        var result = new FileStreamResult(file.Data.Content, "application/octet-stream");
-        result.FileDownloadName = file.Info.Name;
+        var result = new FileStreamResult(file.Data.Content, "application/octet-stream")
+        {
+            FileDownloadName = file.Info.Name
+        };
         return result;
     }
 }

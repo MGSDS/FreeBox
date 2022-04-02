@@ -16,5 +16,4 @@ public class ContainerInfo
     public string Name { get; }
     public long Size { get; }
     public DateTime SaveDate { get; }
-    
 }

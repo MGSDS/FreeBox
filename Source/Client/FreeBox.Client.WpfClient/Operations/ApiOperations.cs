@@ -93,10 +93,29 @@ namespace FreeBox.Client.WpfClient.Operations
             }
         }
 
-        public bool Delete()
+        public bool DeleteUser()
         {
             AuthorizationTest();
             var endpoint = new Uri(_baseUrl, "api/accounts/delete");
+            try
+            {
+                ActualizeToken();
+                var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", Globals.LoggedInUser.Token);
+                HttpResponseMessage response = httpClient.DeleteAsync(endpoint).Result;
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public bool DeleteFile(Guid id)
+        {
+            AuthorizationTest();
+            var endpoint = new Uri(_baseUrl, $"api/file/delete/{id}");
             try
             {
                 ActualizeToken();
@@ -122,12 +141,34 @@ namespace FreeBox.Client.WpfClient.Operations
                 var httpClient = new HttpClient();
                 httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", Globals.LoggedInUser.Token);
-                HttpResponseMessage response = httpClient.DeleteAsync(endpoint).Result;
+                HttpResponseMessage response = httpClient.GetAsync(endpoint).Result;
                 if (!response.IsSuccessStatusCode)
                     return null;
                 List<ContainerInfoDto>? dtos = JsonConvert.DeserializeObject<List<ContainerInfoDto>>(response.Content.ReadAsStringAsync()
                     .Result);
                 return dtos?.Select(x => new ContainerInfo(x.Id, x.Name, x.Size, x.SaveDate));
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public FileContainer? GetFile(Guid fileId)
+        {
+            AuthorizationTest();
+            var endpoint = new Uri(_baseUrl, $"api/file/get/{fileId}");
+            try
+            {
+                ActualizeToken();
+                var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", Globals.LoggedInUser.Token);
+                HttpResponseMessage response = httpClient.GetAsync(endpoint).Result;
+                if (!response.IsSuccessStatusCode)
+                    return null;
+                string fileName = response.Content.Headers.ContentDisposition.FileName;
+                return new FileContainer(response.Content.ReadAsStream(), fileName);
             }
             catch (Exception)
             {

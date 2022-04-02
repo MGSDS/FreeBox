@@ -44,7 +44,7 @@ public partial class DetailedPage : Page
     private void BtnDelete_Click(object sender, RoutedEventArgs e)
     {
         var ops = new ApiOperations();
-        if (ops.Delete())
+        if (ops.DeleteUser())
         {
             MessageBox.Show("User successfully deleted");
             Globals.LoggedInUser = null;
@@ -58,7 +58,7 @@ public partial class DetailedPage : Page
 
     private void BtnFiles_Click(object sender, RoutedEventArgs e)
     {
-        throw new System.NotImplementedException();
+        NavigationService.Navigate(new FilesPage());
     }
 
     private void BtnUpload_Click(object sender, RoutedEventArgs e)
