@@ -35,56 +35,44 @@ public class UserServiceTests
     [Test]
     public void Add_UserRegistered()
     {
-        _userService.Add("test", "test");
+        _userService.AddUser("test", "test", "user");
         Assert.True(_context.Users.Any());
     }
     
     [Test]
     public void Find_UserReturned()
     {
-        _userService.Add("test", "test");
-        Assert.IsNotNull(_userService.Find("test"));
-        Assert.IsNotNull(_userService.Find("test", "test"));
+        _userService.AddUser("test", "test", "user");
+        Assert.IsNotNull(_userService.FindUser("test"));
     }
     
     [Test]
     public void Find_UserNotFoundException()
     {
-        Assert.Catch<UserNotFoundException>(() => _userService.Find("test"));
-        Assert.Catch<UserNotFoundException>(() => _userService.Find("test", "test"));
+        Assert.Catch<UserNotFoundException>(() => _userService.FindUser("test"));
     }
-    
-    [Test]
-    public void Find_InvalidCredentialException()
-    {
-        _userService.Add("test", "test");
-        Assert.Catch<InvalidCredentialException>(() => _userService.Find("test", "invalid"));
-    }
-    
+
     [Test]
     public void Add_UserAlreadyExistsException()
     {
-        _userService.Add("test", "test");
-        Assert.Catch<UserAlreadyExistsException>(() => _userService.Add("test", "test"));
+        _userService.AddUser("test", "test", "user");
+        Assert.Catch<UserAlreadyExistsException>(() => _userService.AddUser("test", "test", "user"));
     }
     
     [Test]
     public void Delete_UserDeletedWithFiles()
     {
-        _userService.Add("test", "test");
-        ContainerData testContainerData;
+        _userService.AddUser("test", "test", "user");
         var rnd = new Random();
         var content = new byte[20];
         rnd.NextBytes(content);
-        using (var stream = new MemoryStream(content))
-        {
-            testContainerData = new ContainerData(stream);
-        }
-        
-        var container =
+        using var stream = new MemoryStream(content);
+        using var testContainerData = new ContainerData(stream);
+
+        using var container =
             new FileContainer(new ContainerInfo("test", testContainerData.Content.Length, DateTime.Now), testContainerData);
-        var savedInfo = _fileService.Save(container, "test");
-        _userService.Delete("test");
+        var savedInfo = _fileService.SaveFile(container, "test");
+        _userService.DeleteUser("test");
         Assert.IsEmpty(_context.Blobs);
         Assert.IsEmpty(_context.Files);
         Assert.IsEmpty(_context.FileInfos);

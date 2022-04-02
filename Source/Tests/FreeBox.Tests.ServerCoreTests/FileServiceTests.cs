@@ -35,18 +35,16 @@ public class FileServiceTests
     [Test]
     public void SaveFile_FileSaved()
     {
-        ContainerData testContainerData;
+
         var rnd = new Random();
         var content = new byte[20];
         rnd.NextBytes(content);
-        using (var stream = new MemoryStream(content))
-        {
-            testContainerData = new ContainerData(stream);
-        }
+        using var stream = new MemoryStream(content);
+        using var testContainerData = new ContainerData(stream);
 
-        var container =
+        using var container =
             new FileContainer(new ContainerInfo("test", testContainerData.Content.Length, DateTime.Now), testContainerData);
-        _service.Save(container, _testUser.Login);
+        _service.SaveFile(container, _testUser.Login);
         Assert.IsNotEmpty(_context.Files.ToList());
         Assert.IsNotEmpty(
             _context.Users
@@ -60,38 +58,32 @@ public class FileServiceTests
     [Test]
     public void GetFile_FileReturned()
     {
-        ContainerData testContainerData;
         var rnd = new Random();
         var content = new byte[20];
         rnd.NextBytes(content);
-        using (var stream = new MemoryStream(content))
-        {
-            testContainerData = new ContainerData(stream);
-        }
-        
-        var container =
+        using var stream = new MemoryStream(content);
+        using var testContainerData = new ContainerData(stream);
+
+        using var container =
             new FileContainer(new ContainerInfo("test", testContainerData.Content.Length, DateTime.Now), testContainerData);
-        var savedInfo = _service.Save(container, _testUser.Login);
-        var returnedFile = _service.Find(_testUser.Login, savedInfo.Id);
+        var savedInfo = _service.SaveFile(container, _testUser.Login);
+        var returnedFile = _service.GetFile(savedInfo.Id);
         Assert.True(content.SequenceEqual(returnedFile.Data.Content.ToArray()));
     }
 
     [Test]
     public void DeleteFile_FileDeleted()
     {
-        ContainerData testContainerData;
         var rnd = new Random();
         var content = new byte[20];
         rnd.NextBytes(content);
-        using (var stream = new MemoryStream(content))
-        {
-            testContainerData = new ContainerData(stream);
-        }
-        
-        var container =
+        using var stream = new MemoryStream(content);
+        using var testContainerData = new ContainerData(stream);
+
+        using var container =
             new FileContainer(new ContainerInfo("test", testContainerData.Content.Length, DateTime.Now), testContainerData);
-        var savedInfo = _service.Save(container, _testUser.Login);
-        _service.Delete(_testUser.Login ,savedInfo.Id);
+        var savedInfo = _service.SaveFile(container, _testUser.Login);
+        _service.DeleteFile(savedInfo.Id);
         Assert.IsEmpty(_context.Blobs);
         Assert.IsEmpty(_context.Files);
         Assert.IsEmpty(_context.FileInfos);
@@ -100,27 +92,15 @@ public class FileServiceTests
     [Test]
     public void DeleteNotExistingFile_FileNotFoundException()
     {
-        Assert.Throws<FileNotFoundException>(() => _service.Delete(_testUser.Login, Guid.NewGuid()));
+        Assert.Throws<FileNotFoundException>(() => _service.DeleteFile(Guid.NewGuid()));
     }
     
     [Test]
     public void GetNotExistingFile_FileNotFoundException()
     {
-        Assert.Throws<FileNotFoundException>(() => _service.Find(_testUser.Login, Guid.NewGuid()));
+        Assert.Throws<FileNotFoundException>(() => _service.GetFile(Guid.NewGuid()));
     }
-    
-    [Test]
-    public void GetFileByNotExistingUser_UserNotFoundException()
-    {
-        Assert.Throws<UserNotFoundException>(() => _service.Find("NotExists", Guid.NewGuid()));
-    }
-    
-    [Test]
-    public void DeleteFileByNotExistingUser_UserNotFoundException()
-    {
-        Assert.Throws<UserNotFoundException>(() => _service.Delete("NotExists", Guid.NewGuid()));
-    }
-    
+
     [Test]
     public void AddFileByNotExistingUser_UserNotFoundException()
     {
@@ -132,50 +112,8 @@ public class FileServiceTests
         {
             testContainerData = new ContainerData(stream);
         }
-        var container =
+        using var container =
             new FileContainer(new ContainerInfo("test", testContainerData.Content.Length, DateTime.Now), testContainerData);
-        Assert.Throws<UserNotFoundException>(() => _service.Save(container, "NotExists"));
-    }
-    
-    [Test]
-    public void GetFileByNotAllowedUser_UserNotFoundException()
-    {
-        var notAllowedUser = new User("NotAllowed", "test", "aboba");
-        _context.Users.Add(notAllowedUser);
-        _context.SaveChanges();
-        ContainerData testContainerData;
-        var rnd = new Random();
-        var content = new byte[20];
-        rnd.NextBytes(content);
-        using (var stream = new MemoryStream(content))
-        {
-            testContainerData = new ContainerData(stream);
-        }
-        
-        var container =
-            new FileContainer(new ContainerInfo("test", testContainerData.Content.Length, DateTime.Now), testContainerData);
-        _service.Save(container, _testUser.Login);
-        Assert.Throws<FileNotFoundException>(() => _service.Find(notAllowedUser.Login, Guid.NewGuid()));
-    }
-    
-    [Test]
-    public void DeleteFileByNotAllowedUser_UserNotFoundException()
-    {
-        var notAllowedUser = new User("NotAllowed", "test", "aboba");
-        _context.Users.Add(notAllowedUser);
-        _context.SaveChanges();
-        ContainerData testContainerData;
-        var rnd = new Random();
-        var content = new byte[20];
-        rnd.NextBytes(content);
-        using (var stream = new MemoryStream(content))
-        {
-            testContainerData = new ContainerData(stream);
-        }
-        
-        var container =
-            new FileContainer(new ContainerInfo("test", testContainerData.Content.Length, DateTime.Now), testContainerData);
-        _service.Save(container, _testUser.Login);
-        Assert.Throws<FileNotFoundException>(() => _service.Delete(notAllowedUser.Login, Guid.NewGuid()));
+        Assert.Throws<UserNotFoundException>(() => _service.SaveFile(container, "NotExists"));
     }
 }

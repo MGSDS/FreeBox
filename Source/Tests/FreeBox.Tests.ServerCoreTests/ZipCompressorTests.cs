@@ -21,14 +21,11 @@ public class ZipCompressorTests
     [Test]
     public void CompressDecompress_DataEquals()
     {
-        ContainerData testContainerData;
         var rnd = new Random();
         var content = new byte[20];
         rnd.NextBytes(content);
-        using (var stream = new MemoryStream(content))
-        {
-            testContainerData = new ContainerData(stream);
-        }
+        using var stream = new MemoryStream(content);
+        using var testContainerData = new ContainerData(stream);
 
         var compressed = _compression.Compress(testContainerData);
         var decompressed = _compression.Decompress(compressed);

@@ -39,7 +39,7 @@ try
     builder.Services.AddScoped<ICompressionAlgorithm, ZipCompressor>();
     builder.Services.AddScoped<IFileService, FileService>();
     builder.Services.AddScoped<IUserService, UserService>();
-    
+
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
         {

@@ -9,22 +9,22 @@
     <Grid>
         <TextBlock Text="Account" HorizontalAlignment="Center" FontSize="33" />
         <StackPanel Margin="0" VerticalAlignment="Center">
-            <Grid HorizontalAlignment="Center" Width="200">
+            <Grid HorizontalAlignment="Center" Width="Auto">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="50" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-
                 <TextBlock Text="Login:" Grid.Row="0" Grid.Column="0" />
                 <TextBlock x:Name="TbkLogin" Text="Login" Grid.Row="0" Grid.Column="1" />
-
             </Grid>
-            <Button x:Name="BtnFiles" Content="Go to files" Width="100" Click="BtnFiles_Click" Margin="0,10,0,0" />
+            <Button x:Name="BtnUpload" Content="Upload File" Width="100" Click="BtnUpload_Click" Margin="0,10,0,0" />
+            <Button x:Name="BtnFiles" Content="Show files" Width="100" Click="BtnFiles_Click" Margin="0,10,0,0" />
             <Button x:Name="BtnLogout" Content="Logout" Width="100" Click="BtnLogout_Click" Margin="0,10,0,0" />
-            <Button x:Name="BtnDelete" Content="Delete Account" Width="100" Click="BtnDelete_Click" Margin="0,10,0,0" />
+            <TextBlock Text="Danger Zone" TextAlignment="Center" Margin="0,10,0,0"/>
+            <Button x:Name="BtnDelete" Content="DeleteUser Account" Width="100" Click="BtnDelete_Click" Margin="0,10,0,0" />
         </StackPanel>
     </Grid>
 </Page>

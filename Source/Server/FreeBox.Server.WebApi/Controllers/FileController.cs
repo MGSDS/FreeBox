@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace FreeBox.Server.Core.Controllers;
 
 [ApiController]
-[Route("/api/file")]
+[Route("/api/files")]
 public class FileController : ControllerBase
 {
     private IFileService _fileService;
@@ -20,7 +20,7 @@ public class FileController : ControllerBase
     
     [HttpPost]
     [Route("upload")]
-    [Authorize(AuthenticationSchemes ="Bearer", Roles = "user")]
+    [Authorize(AuthenticationSchemes ="Bearer", Roles = "user,admin")]
     public ActionResult<ContainerInfoDto> AddUserFile(IFormFile fileForm)
     {
         ContainerInfo info;
@@ -28,36 +28,43 @@ public class FileController : ControllerBase
         using (Stream content = fileForm.OpenReadStream())
         {
             data = new ContainerData(content);
-            info = new ContainerInfo(fileForm.Name, fileForm.Length, DateTime.Now);
+            info = new ContainerInfo(fileForm.FileName, fileForm.Length, DateTime.Now);
         }
 
-        var file = new FileContainer(info, data);
+        using var file = new FileContainer(info, data);
         
-        ContainerInfo fileInfo = _fileService.Save(file, User.Identity.Name);
+        ContainerInfo fileInfo = _fileService.SaveFile(file, User.Identity.Name);
         file.Dispose();
         return fileInfo.ToDto();
     }
 
     
     [HttpGet]
-    [Route("get/all")]
-    [Authorize(AuthenticationSchemes ="Bearer", Roles = "user")]
-    public List<ContainerInfoDto> GetUserFiles()
+    [Route("user/{login}/get/all")]
+    [Authorize(AuthenticationSchemes ="Bearer", Roles = "user,admin")]
+    public ActionResult<IEnumerable<ContainerInfoDto>> GetUserFiles(string login)
     {
+        if (String.IsNullOrEmpty(login) || String.IsNullOrWhiteSpace(login))
+            return BadRequest("login can not be empty");
+
+        if ((!User.IsInRole("admin")) && login != User.Identity.Name)
+            return Forbid();
         return _fileService
-            .Find(User.Identity.Name)
+            .FindUserFiles(User.Identity.Name)
             .Select(x => x.ToDto())
             .ToList();
     }
     
     [HttpDelete]
-    [Route("delete/{id}")]
-    [Authorize(AuthenticationSchemes ="Bearer", Roles = "user")]
-    public ActionResult DeleteFile([FromRoute] Guid id)
+    [Route("delete/{containerInfoId}")]
+    [Authorize(AuthenticationSchemes ="Bearer", Roles = "user,admin")]
+    public ActionResult DeleteFile([FromRoute] Guid containerInfoId)
     {
         try
         {
-            _fileService.Delete(User.Identity.Name, id);
+            if (!User.IsInRole("admin") && _fileService.FindUserFiles(User.Identity.Name).All(x => x.Id != containerInfoId))
+                return Forbid();
+            _fileService.DeleteFile(containerInfoId);
         }
         catch (FileNotFoundException)
         {
@@ -67,14 +74,16 @@ public class FileController : ControllerBase
     }
     
     [HttpGet]
-    [Route("get/{id}")]
-    [Authorize(AuthenticationSchemes ="Bearer", Roles = "user")]
-    public ActionResult<FileStreamResult> GetFile([FromRoute] Guid id)
+    [Route("get/{containerInfoId}")]
+    [Authorize(AuthenticationSchemes ="Bearer", Roles = "user,admin")]
+    public IActionResult GetFile([FromRoute] Guid containerInfoId)
     {
         FileContainer file;
         try
         {
-            file = _fileService.Find(User.Identity.Name, id);
+            if (!User.IsInRole("admin") && _fileService.FindUserFiles(User.Identity.Name).All(x => x.Id != containerInfoId))
+                return Forbid();
+            file = _fileService.GetFile(containerInfoId);
         }
         catch (FileNotFoundException)
         {
@@ -82,8 +91,10 @@ public class FileController : ControllerBase
         }
 
         file.Data.Content.Position = 0;
-        var result = new FileStreamResult(file.Data.Content, "application/octet-stream");
-        result.FileDownloadName = file.Info.Name;
+        var result = new FileStreamResult(file.Data.Content, "application/octet-stream")
+        {
+            FileDownloadName = file.Info.Name
+        };
         return result;
     }
 }
