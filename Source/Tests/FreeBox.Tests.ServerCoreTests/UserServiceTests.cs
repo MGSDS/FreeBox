@@ -28,8 +28,8 @@ public class UserServiceTests : IDisposable
             .Options;
         _context = new FreeBoxContext(options);
         _context.Database.EnsureDeleted();
-        _fileService = new FileService(_context, new NullLogger<FileService>(), new ZipCompressor());
-        _userService = new UserService(_context, new NullLogger<UserService>(), _fileService);
+        _fileService = new FileService(_context,  new ZipCompressor());
+        _userService = new UserService(_context, _fileService);
     }
 
     [Test]

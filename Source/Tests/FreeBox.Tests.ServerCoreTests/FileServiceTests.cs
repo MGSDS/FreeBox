@@ -8,7 +8,6 @@ using FreeBox.Server.Core.Services;
 using FreeBox.Server.Domain.Entities;
 using FreeBox.Shared.Exceptions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
 
 namespace FreeBox.Tests.ServerCoreTests;
@@ -26,7 +25,7 @@ public class FileServiceTests : IDisposable
             .Options;
         _context = new FreeBoxContext(options);
         _context.Database.EnsureDeleted();
-        _testUser = new User("test", "test", "aboba");
+        _testUser = new User("test", "aboba", "user");
         _context.Users.Add(_testUser);
         _context.SaveChanges();
         _service = new FileService(_context,  new NoCompressor());
