@@ -29,7 +29,7 @@ public class FileServiceTests : IDisposable
         _testUser = new User("test", "test", "aboba");
         _context.Users.Add(_testUser);
         _context.SaveChanges();
-        _service = new FileService(_context, new NullLogger<FileService>(), new NoCompressor());
+        _service = new FileService(_context,  new NoCompressor());
     }
 
     [Test]

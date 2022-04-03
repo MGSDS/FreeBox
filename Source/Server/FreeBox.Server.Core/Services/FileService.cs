@@ -3,7 +3,6 @@ using FreeBox.Server.Core.Interfaces;
 using FreeBox.Server.Domain.Entities;
 using FreeBox.Shared.Exceptions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace FreeBox.Server.Core.Services;
 
@@ -12,13 +11,9 @@ public class FileService : IFileService
     private readonly FreeBoxContext _context;
     private readonly ICompressionAlgorithm _compressionAlgorithm;
 
-// TODO: Logger
-    private ILogger<FileService> _logger;
-
-    public FileService(FreeBoxContext context, ILogger<FileService> logger, ICompressionAlgorithm compressionAlgorithm)
+    public FileService(FreeBoxContext context, ICompressionAlgorithm compressionAlgorithm)
     {
         _context = context;
-        _logger = logger;
         _compressionAlgorithm = compressionAlgorithm;
     }
 

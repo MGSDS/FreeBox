@@ -17,10 +17,12 @@ namespace FreeBox.Server.WebApi.Controllers;
 public class AccountController : Controller
 {
     private readonly IUserService _userService;
+    private ILogger<AccountController> _logger;
 
-    public AccountController(IUserService userService)
+    public AccountController(IUserService userService, ILogger<AccountController> logger)
     {
         _userService = userService;
+        _logger = logger;
     }
 
     [HttpPost]
@@ -43,6 +45,8 @@ public class AccountController : Controller
             return BadRequest("User with such login already exists");
         }
 
+        _logger.LogInformation($"User {credentials.Login} successfully registered");
+
         return user.ToDto();
     }
 
@@ -51,6 +55,7 @@ public class AccountController : Controller
     [Authorize(AuthenticationSchemes = "Bearer", Roles = "admin")]
     public ActionResult<UserDto> CreateAdminUser(UserCredentialsDto credentials)
     {
+        _logger.LogInformation($"{HttpContext.Request.Path} invoked from {HttpContext.Connection.RemoteIpAddress?.ToString()}");
         if (string.IsNullOrEmpty(credentials.Login)
             || string.IsNullOrEmpty(credentials.Password)
             || string.IsNullOrWhiteSpace(credentials.Password)
@@ -66,6 +71,8 @@ public class AccountController : Controller
         {
             return BadRequest("User with such login already exists");
         }
+
+        _logger.LogInformation($"Admin {credentials.Login} successfully registered by {User.Identity!.Name}");
 
         return user.ToDto();
     }
@@ -96,6 +103,8 @@ public class AccountController : Controller
                 SecurityAlgorithms.HmacSha256));
         string? encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
 
+        _logger.LogInformation($"User {User.Identity!.Name} successfully authenticated");
+
         return new AuthInfoDto(credentials.Login, encodedJwt);
     }
 
@@ -108,9 +117,13 @@ public class AccountController : Controller
             return BadRequest("login can not be empty");
 
         if (!User.IsInRole("admin") && login != User.Identity!.Name)
+        {
+            _logger.LogWarning($"User {User.Identity!.Name} tried to delete user {login}");
             return Forbid();
+        }
 
         _userService.DeleteUser(User.Identity!.Name!);
+        _logger.LogInformation($"User {User.Identity!.Name} successfully deleted user {login}");
         return Ok();
     }
 

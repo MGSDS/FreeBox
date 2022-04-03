@@ -12,10 +12,12 @@ namespace FreeBox.Server.WebApi.Controllers;
 public class FileController : ControllerBase
 {
     private readonly IFileService _fileService;
+    private ILogger<FileController> _logger;
 
-    public FileController(IFileService fileService)
+    public FileController(IFileService fileService, ILogger<FileController> logger)
     {
         _fileService = fileService;
+        _logger = logger;
     }
 
     [HttpPost]
@@ -35,6 +37,7 @@ public class FileController : ControllerBase
 
         ContainerInfo fileInfo = _fileService.SaveFile(file, User.Identity!.Name!);
         file.Dispose();
+        _logger.LogInformation($"User {User.Identity!.Name} successfully uploaded file {fileInfo.Name}");
         return fileInfo.ToDto();
     }
 
@@ -47,11 +50,18 @@ public class FileController : ControllerBase
             return BadRequest("login can not be empty");
 
         if (!User.IsInRole("admin") && login != User.Identity!.Name)
+        {
+            _logger.LogWarning($"User {User.Identity!.Name} unsuccessfully tried to get files of user {login}");
             return Forbid();
-        return _fileService
+        }
+
+        var files = _fileService
             .FindUserFiles(User.Identity!.Name!)
             .Select(x => x.ToDto())
             .ToList();
+
+        _logger.LogInformation($"User {User.Identity!.Name} successfully gets files of user {login}");
+        return files;
     }
 
     [HttpDelete]
@@ -67,9 +77,11 @@ public class FileController : ControllerBase
         }
         catch (FileNotFoundException)
         {
+            _logger.LogWarning($"User {User.Identity!.Name} tried to delete non-existent file");
             return BadRequest("No such file found");
         }
 
+        _logger.LogInformation($"User {User.Identity!.Name} successfully deleted file {containerInfoId}");
         return Ok();
     }
 
@@ -87,6 +99,7 @@ public class FileController : ControllerBase
         }
         catch (FileNotFoundException)
         {
+            _logger.LogWarning($"User {User.Identity!.Name} tried to download non-existent file ");
             return BadRequest("No such file found");
         }
 
@@ -95,6 +108,8 @@ public class FileController : ControllerBase
         {
             FileDownloadName = file.Info.Name,
         };
+
+        _logger.LogInformation($"User {User.Identity!.Name} successfully downloaded file {containerInfoId}");
         return result;
     }
 }
