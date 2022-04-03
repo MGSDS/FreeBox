@@ -17,5 +17,6 @@ If you want to use IIS or Kestrel on different address(https://localhost:7233) y
 ### Server:
 - Asp.Net
 - Entity Framework
+- Nlog
 ### Client
 - WPF
