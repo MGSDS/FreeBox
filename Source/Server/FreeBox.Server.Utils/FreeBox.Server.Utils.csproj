@@ -4,11 +4,24 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <WarningLevel>5</WarningLevel>
+        <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
     </PropertyGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\..\FreeBox.Shared\FreeBox.Shared.csproj" />
       <ProjectReference Include="..\FreeBox.Server.Domain\FreeBox.Server.Domain.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.406">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\..\.editorconfig" Link=".editorconfig" />
     </ItemGroup>
 
 </Project>

@@ -11,11 +11,16 @@ public class User
           Role = role;
           Files = new List<FileContainer>();
      }
-     private User(){}
+
+#pragma warning disable CS8618
+     private User() { }
+#pragma warning restore CS8618
 
      public List<FileContainer> Files { get; private init; }
-     
+
      [Key]
+
+     // TODO: remove attribute
      public string Login { get; private init; }
      public string Password { get; private init; }
      public string Role { get; private init; }

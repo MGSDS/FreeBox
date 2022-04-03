@@ -1,6 +1,5 @@
-﻿using System.ComponentModel;
+﻿using FreeBox.DataAccess;
 using FreeBox.Server.Core.Interfaces;
-using FreeBox.DataAccess;
 using FreeBox.Server.Domain.Entities;
 using FreeBox.Shared.Exceptions;
 using Microsoft.EntityFrameworkCore;
@@ -10,8 +9,10 @@ namespace FreeBox.Server.Core.Services;
 
 public class FileService : IFileService
 {
-    private FreeBoxContext _context;
-    private ICompressionAlgorithm _compressionAlgorithm;
+    private readonly FreeBoxContext _context;
+    private readonly ICompressionAlgorithm _compressionAlgorithm;
+
+// TODO: Logger
     private ILogger<FileService> _logger;
 
     public FileService(FreeBoxContext context, ILogger<FileService> logger, ICompressionAlgorithm compressionAlgorithm)
@@ -24,11 +25,10 @@ public class FileService : IFileService
     public ContainerInfo SaveFile(FileContainer container, string login)
     {
         User client = FindUserWithFiles(login);
-        using var compressed = _compressionAlgorithm.Compress(container.Data);
+        using ContainerData compressed = _compressionAlgorithm.Compress(container.Data);
         using var model = new FileContainer(
             container.Info.Duplicate(),
-            compressed
-        );
+            compressed);
         client.Files.Add(model);
         _context.SaveChanges();
 
@@ -43,7 +43,7 @@ public class FileService : IFileService
             .FirstOrDefault(x => x.Info.Id == fileInfoId);
         if (fileContainer == null)
             throw new FileNotFoundException();
-        using ContainerData decompressed = _compressionAlgorithm.Decompress(fileContainer.Data);
+        ContainerData decompressed = _compressionAlgorithm.Decompress(fileContainer.Data);
         return new FileContainer(fileContainer.Info.Duplicate(), decompressed);
     }
 
@@ -65,7 +65,7 @@ public class FileService : IFileService
         {
             throw new FileNotFoundException();
         }
-        
+
         _context.Files.Remove(entry);
         _context.FileInfos.Remove(entry.Info);
         _context.Blobs.Remove(entry.Data);

@@ -12,7 +12,7 @@ public class ContainerInfo
         Size = size;
     }
 
-    public Guid Id { get; } 
+    public Guid Id { get; }
     public string Name { get; }
     public long Size { get; }
     public DateTime SaveDate { get; }

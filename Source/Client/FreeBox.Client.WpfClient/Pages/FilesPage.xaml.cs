@@ -21,7 +21,9 @@ namespace FreeBox.Client.WpfClient.Pages
         public FilesPage()
         {
             InitializeComponent();
+#pragma warning disable CS4014
             UpdateFiles();
+#pragma warning restore CS4014
         }
 
         private async Task UpdateFiles()
@@ -29,7 +31,6 @@ namespace FreeBox.Client.WpfClient.Pages
             var ops = new ApiOperations();
             FilesList.ItemsSource = (await ops.GetContainerInfos() ?? Array.Empty<ContainerInfo>())
                 .Select(x => x.ToViewModel()).ToList();
-
         }
 
         private async void BtnDelete_Click(object sender, RoutedEventArgs e)
@@ -39,17 +40,17 @@ namespace FreeBox.Client.WpfClient.Pages
                 MessageBox.Show("Nothing selected");
                 return;
             }
-            
+
             DisableButtons();
             var file = FilesList.SelectedItem as FileViewModel;
             var ops = new ApiOperations();
-            if (!await ops.DeleteFile(file.Id))
+            if (file == null || !await ops.DeleteFile(file.Id))
             {
                 MessageBox.Show("Something went wrong");
             }
-            
-            UpdateFiles();
-           EnableButtons();
+
+            await UpdateFiles();
+            EnableButtons();
         }
 
         private async void BtnDownload_Click(object sender, RoutedEventArgs e)
@@ -61,23 +62,25 @@ namespace FreeBox.Client.WpfClient.Pages
             }
 
             DisableButtons();
-            
+
             var ops = new ApiOperations();
             var file = FilesList.SelectedItem as FileViewModel;
-            using FileContainer? fileContainer = await ops.GetFile(file.Id);
+            using FileContainer? fileContainer = await ops.GetFile(file!.Id);
             if (fileContainer is null)
             {
                 MessageBox.Show("Something went wrong");
-                UpdateFiles();
+                await UpdateFiles();
                 EnableButtons();
                 return;
             }
+
             var saveFileDialog = new SaveFileDialog
             {
-                FileName = fileContainer.Name
+                FileName = fileContainer.Name,
             };
             if (saveFileDialog.ShowDialog() == true)
                 File.WriteAllBytes(saveFileDialog.FileName, fileContainer.Stream.ToArray());
+
             EnableButtons();
         }
 
@@ -86,10 +89,10 @@ namespace FreeBox.Client.WpfClient.Pages
             NavigationService.GoBack();
         }
 
-        private void BtnUpdate_Click(object sender, RoutedEventArgs e)
+        private async void BtnUpdate_Click(object sender, RoutedEventArgs e)
         {
             DisableButtons();
-            UpdateFiles();
+            await UpdateFiles();
             EnableButtons();
         }
 

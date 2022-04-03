@@ -13,7 +13,7 @@ using NUnit.Framework;
 
 namespace FreeBox.Tests.ServerCoreTests;
 
-public class FileServiceTests
+public class FileServiceTests : IDisposable
 {
     private FreeBoxContext _context;
     private IFileService _service;
@@ -115,5 +115,10 @@ public class FileServiceTests
         using var container =
             new FileContainer(new ContainerInfo("test", testContainerData.Content.Length, DateTime.Now), testContainerData);
         Assert.Throws<UserNotFoundException>(() => _service.SaveFile(container, "NotExists"));
+    }
+
+    public void Dispose()
+    {
+        _context.Dispose();
     }
 }

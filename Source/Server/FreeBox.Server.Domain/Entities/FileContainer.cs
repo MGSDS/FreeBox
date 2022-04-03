@@ -8,8 +8,10 @@ public class FileContainer : IDisposable
         Info = info;
         Data = data;
     }
-    
+
+#pragma warning disable CS8618
     private FileContainer() { }
+#pragma warning restore CS8618
     public Guid Id { get; private init; }
     public ContainerInfo Info { get; init; }
     public ContainerData Data { get; private init; }

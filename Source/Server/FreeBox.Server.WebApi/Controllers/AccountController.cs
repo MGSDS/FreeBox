@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
-namespace FreeBox.Server.Core.Controllers;
+namespace FreeBox.Server.WebApi.Controllers;
 
 [ApiController]
 [Route("/api/accounts")]
@@ -22,15 +22,15 @@ public class AccountController : Controller
     {
         _userService = userService;
     }
-    
+
     [HttpPost]
     [Route("register")]
     public ActionResult<UserDto> CreateUser(UserCredentialsDto credentials)
     {
-        if (String.IsNullOrEmpty(credentials.Login)
-            || String.IsNullOrEmpty(credentials.Password)
-            || String.IsNullOrWhiteSpace(credentials.Password)
-            || String.IsNullOrWhiteSpace(credentials.Login))
+        if (string.IsNullOrEmpty(credentials.Login)
+            || string.IsNullOrEmpty(credentials.Password)
+            || string.IsNullOrWhiteSpace(credentials.Password)
+            || string.IsNullOrWhiteSpace(credentials.Login))
             return BadRequest("login and password can not be empty");
 
         User user;
@@ -42,6 +42,7 @@ public class AccountController : Controller
         {
             return BadRequest("User with such login already exists");
         }
+
         return user.ToDto();
     }
 
@@ -50,10 +51,10 @@ public class AccountController : Controller
     [Authorize(AuthenticationSchemes = "Bearer", Roles = "admin")]
     public ActionResult<UserDto> CreateAdminUser(UserCredentialsDto credentials)
     {
-        if (String.IsNullOrEmpty(credentials.Login)
-            || String.IsNullOrEmpty(credentials.Password) 
-            || String.IsNullOrWhiteSpace(credentials.Password) 
-            || String.IsNullOrWhiteSpace(credentials.Login))
+        if (string.IsNullOrEmpty(credentials.Login)
+            || string.IsNullOrEmpty(credentials.Password)
+            || string.IsNullOrWhiteSpace(credentials.Password)
+            || string.IsNullOrWhiteSpace(credentials.Login))
             return BadRequest("login and password can not be empty");
 
         User user;
@@ -65,33 +66,35 @@ public class AccountController : Controller
         {
             return BadRequest("User with such login already exists");
         }
+
         return user.ToDto();
     }
 
     [HttpPost]
-    [Route(("auth"))]
+    [Route("auth")]
     public ActionResult<AuthInfoDto> Token(UserCredentialsDto credentials)
     {
-        if (String.IsNullOrEmpty(credentials.Login)
-            || String.IsNullOrEmpty(credentials.Password)
-            || String.IsNullOrWhiteSpace(credentials.Password)
-            || String.IsNullOrWhiteSpace(credentials.Login))
+        if (string.IsNullOrEmpty(credentials.Login)
+            || string.IsNullOrEmpty(credentials.Password)
+            || string.IsNullOrWhiteSpace(credentials.Password)
+            || string.IsNullOrWhiteSpace(credentials.Login))
             return BadRequest("login and password can not be empty");
 
-        var identity = GetIdentity(credentials.Login, credentials.Password);
+        ClaimsIdentity? identity = GetIdentity(credentials.Login, credentials.Password);
         if (identity == null)
             return BadRequest("Invalid username or password.");
 
-        var now = DateTime.UtcNow;
+        DateTime now = DateTime.UtcNow;
         var jwt = new JwtSecurityToken(
             issuer: AuthOptions.ISSUER,
             audience: AuthOptions.AUDIENCE,
             notBefore: now,
             claims: identity.Claims,
             expires: now.Add(TimeSpan.FromMinutes(AuthOptions.LIFETIME)),
-            signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(),
+            signingCredentials: new SigningCredentials(
+                AuthOptions.GetSymmetricSecurityKey(),
                 SecurityAlgorithms.HmacSha256));
-        var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
+        string? encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
 
         return new AuthInfoDto(credentials.Login, encodedJwt);
     }
@@ -101,16 +104,16 @@ public class AccountController : Controller
     [Authorize(AuthenticationSchemes ="Bearer", Roles = "user,admin")]
     public ActionResult DeleteUser(string login)
     {
-        if (String.IsNullOrEmpty(login) || String.IsNullOrWhiteSpace(login))
+        if (string.IsNullOrEmpty(login) || string.IsNullOrWhiteSpace(login))
             return BadRequest("login can not be empty");
 
-        if (!User.IsInRole("admin") && login != User.Identity.Name)
+        if (!User.IsInRole("admin") && login != User.Identity!.Name)
             return Forbid();
 
-        _userService.DeleteUser(User.Identity.Name);
+        _userService.DeleteUser(User.Identity!.Name!);
         return Ok();
     }
-    
+
     private ClaimsIdentity? GetIdentity(string login, string password)
     {
         User user;
@@ -130,11 +133,13 @@ public class AccountController : Controller
         var claims = new List<Claim>
         {
             new Claim(ClaimsIdentity.DefaultNameClaimType, user.Login),
-            new Claim(ClaimsIdentity.DefaultRoleClaimType, user.Role)
+            new Claim(ClaimsIdentity.DefaultRoleClaimType, user.Role),
         };
-        ClaimsIdentity claimsIdentity =
-            new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType,
-                ClaimsIdentity.DefaultRoleClaimType);
+        ClaimsIdentity claimsIdentity = new(
+            claims,
+            "Token",
+            ClaimsIdentity.DefaultNameClaimType,
+            ClaimsIdentity.DefaultRoleClaimType);
         return claimsIdentity;
     }
 }

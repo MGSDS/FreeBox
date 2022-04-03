@@ -14,7 +14,7 @@ using NUnit.Framework;
 
 namespace FreeBox.Tests.ServerCoreTests;
 
-public class UserServiceTests
+public class UserServiceTests : IDisposable
 {
     private FreeBoxContext _context;
     private IFileService _fileService;
@@ -77,5 +77,10 @@ public class UserServiceTests
         Assert.IsEmpty(_context.Files);
         Assert.IsEmpty(_context.FileInfos);
         Assert.IsEmpty(_context.Users);
+    }
+
+    public void Dispose()
+    {
+        _context.Dispose();
     }
 }

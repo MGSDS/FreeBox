@@ -16,13 +16,13 @@ public partial class DetailedPage : Page
 
     private void ShowUserInfo()
     {
-        TbkLogin.Text = Globals.LoggedInUser.Login;
+        TbkLogin.Text = Globals.LoggedInUser!.Login;
     }
 
     private void BtnLogout_Click(object sender, RoutedEventArgs e)
     {
         Globals.LoggedInUser = null;
-        NavigationService.Navigate(new LoginPage());
+        NavigationService!.Navigate(new LoginPage());
     }
 
     private async void BtnDelete_Click(object sender, RoutedEventArgs e)
@@ -35,28 +35,29 @@ public partial class DetailedPage : Page
             EnableButtons();
             return;
         }
+
         MessageBox.Show("User successfully deleted");
         Globals.LoggedInUser = null;
-        NavigationService.Navigate(new LoginPage());
+        NavigationService!.Navigate(new LoginPage());
         }
 
     private void BtnFiles_Click(object sender, RoutedEventArgs e)
     {
-        NavigationService.Navigate(new FilesPage());
+        NavigationService!.Navigate(new FilesPage());
     }
 
     private async void BtnUpload_Click(object sender, RoutedEventArgs e)
     {
         DisableButtons();
         var ops = new ApiOperations();
-        OpenFileDialog openFileDialog = new OpenFileDialog();
+        var openFileDialog = new OpenFileDialog();
         if (openFileDialog.ShowDialog() != true) return;
         MessageBox.Show(await ops.UploadFile(openFileDialog.FileName)
             ? "File successfully uploaded"
             : "Something went wrong, try again later");
         EnableButtons();
     }
-    
+
     private void DisableButtons()
     {
         BtnFiles.IsEnabled = false;

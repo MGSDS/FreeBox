@@ -1,38 +1,37 @@
-using FreeBox.Server.Core;
+using FreeBox.DataAccess;
 using FreeBox.Server.Core.CompressionAlgorithms;
 using FreeBox.Server.Core.Interfaces;
 using FreeBox.Server.Core.Services;
-using FreeBox.DataAccess;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using NLog.Web;
-using NLog;
+using FreeBox.Server.WebApi;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using NLog;
+using NLog.Web;
 
 Logger logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
 logger.Debug("init main");
-var config = new ConfigurationManager();
 
 try
 {
-    var builder = WebApplication.CreateBuilder(args);
+    WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
     builder.Services.AddControllers();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
     builder.Services.AddScoped<ICompressionAlgorithm, ZipCompressor>();
-    var connectionString = builder.Configuration.GetSection("ConnectionString").Value;
+    string? connectionString = builder.Configuration.GetSection("ConnectionString").Value;
     builder.Services.AddDbContext<FreeBoxContext>(options =>
     {
-        options.UseSqlServer(connectionString ?? 
+        options.UseSqlServer(connectionString ??
                              throw new ArgumentException("No ConnectionString specified"));
     });
-    
+
     builder.Logging.ClearProviders();
     builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
     builder.Host.UseNLog();
@@ -63,7 +62,7 @@ try
 
             c.SwaggerDoc(
                 "v1",
-                new OpenApiInfo {Title = "FreeBox.Server", Version = "v1"});
+                new OpenApiInfo { Title = "FreeBox.Server", Version = "v1" });
 
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
@@ -79,9 +78,9 @@ try
                     new OpenApiSecurityScheme
                     {
                         Reference = new OpenApiReference
-                            {Type = ReferenceType.SecurityScheme, Id = "Bearer"},
+                            { Type = ReferenceType.SecurityScheme, Id = "Bearer" },
                     },
-                    new[] {string.Empty}
+                    new[] { string.Empty }
                 },
             });
         });
@@ -92,9 +91,8 @@ try
             .RequireAuthenticatedUser()
             .Build();
     });
-    
-    var app = builder.Build();
 
+    WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
@@ -103,13 +101,12 @@ try
         app.UseSwaggerUI();
     }
 
-
     app.UseHttpsRedirection();
 
     app.UseAuthorization();
 
     app.MapControllers();
-    
+
     app.UseAuthentication();
 
     app.Run();
@@ -121,5 +118,5 @@ catch (Exception exception)
 }
 finally
 {
-    NLog.LogManager.Shutdown();
+    LogManager.Shutdown();
 }

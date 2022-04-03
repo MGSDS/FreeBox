@@ -4,7 +4,8 @@
         <TargetFramework>net6.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-        <RootNamespace>FreeBox.Server.Core</RootNamespace>
+        <WarningLevel>5</WarningLevel>
+        <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
     </PropertyGroup>
 
     <ItemGroup>
@@ -12,6 +13,10 @@
         <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0-preview.2.22152.2" />
         <PackageReference Include="NLog" Version="5.0.0-rc2" />
         <PackageReference Include="NLog.Extensions.Logging" Version="5.0.0-rc2" />
+        <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.406">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
         <PackageReference Include="NLog.Web.AspNetCore" Version="5.0.0-rc2" />
     </ItemGroup>
@@ -25,6 +30,11 @@
     <ItemGroup>
       <ProjectReference Include="..\FreeBox.Server.Core\FreeBox.Server.Core.csproj" />
       <ProjectReference Include="..\FreeBox.Server.Utils\FreeBox.Server.Utils.csproj" />
+    </ItemGroup>
+
+
+    <ItemGroup>
+        <None Include="..\..\.editorconfig" Link=".editorconfig" />
     </ItemGroup>
 
 </Project>

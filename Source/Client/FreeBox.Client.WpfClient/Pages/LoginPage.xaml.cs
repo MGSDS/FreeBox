@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using FreeBox.Client.WpfClient.Entitities;
@@ -13,13 +12,13 @@ public partial class LoginPage : Page
     {
         InitializeComponent();
     }
-    
+
     private async void BtnLogin_Click(object sender, RoutedEventArgs e)
     {
         string username = TbxUsername.Text;
         string password = PbxPassword.Password;
         DisableButtons();
-        ApiOperations ops = new ApiOperations();
+        var ops = new ApiOperations();
         User? user = await ops.AuthenticateUser(username, password);
         if (user == null)
         {
@@ -29,14 +28,14 @@ public partial class LoginPage : Page
         }
 
         Globals.LoggedInUser = user;
-        NavigationService.Navigate(new DetailedPage());
+        NavigationService!.Navigate(new DetailedPage());
     }
 
     private void BtnRegister_Click(object sender, RoutedEventArgs e)
     {
-        NavigationService.Navigate(new RegisterPage());
+        NavigationService!.Navigate(new RegisterPage());
     }
-    
+
     private void DisableButtons()
     {
         BtnLogin.IsEnabled = false;
