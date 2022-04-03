@@ -1,7 +1,7 @@
 ![logo_medium](Docs/Logo/logo_medium.png)
 # FreeBox
 Another DropBox analog\
-Test task in dogital desing
+Digital Design test task
 
 ## Features:
 - Send file to server
